@@ -98,6 +98,7 @@ public:
     void ComputeStereoFromRGBD(const cv::Mat &imDepth);
 
     // Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
+    //将特征点反投影到3D世界坐标系下
     cv::Mat UnprojectStereo(const int &i);
 
 public:

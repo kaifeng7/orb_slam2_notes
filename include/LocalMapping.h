@@ -49,6 +49,7 @@ public:
     // Main function
     void Run();
 
+    //在局部地图中添加关键帧
     void InsertKeyFrame(KeyFrame* pKF);
 
     // Thread Synch

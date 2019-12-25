@@ -86,13 +86,13 @@ public:
         LOST=3
     };
 
-    eTrackingState mState;
+    eTrackingState mState;//跟踪状态标志
     eTrackingState mLastProcessedState;
 
     // Input sensor
     int mSensor;
 
-    // Current Frame
+    // Current Frame，当前帧
     Frame mCurrentFrame;
     cv::Mat mImGray;
 
@@ -105,12 +105,13 @@ public:
 
     // Lists used to recover the full camera trajectory at the end of the execution.
     // Basically we store the reference keyframe for each frame and its relative transformation
-    list<cv::Mat> mlRelativeFramePoses;
-    list<KeyFrame*> mlpReferences;
-    list<double> mlFrameTimes;
+    list<cv::Mat> mlRelativeFramePoses;//每一图像帧与其参考帧之间的姿态变换关系（用于绘制轨迹）
+    list<KeyFrame*> mlpReferences;//每一图像帧的参考关键帧（用于绘制轨迹）
+    list<double> mlFrameTimes;//每一图像帧的时间戳（用于绘制轨迹）
     list<bool> mlbLost;
 
     // True if local mapping is deactivated and we are performing only localization
+    //true->只定位，不建图局部地图
     bool mbOnlyTracking;
 
     void Reset();
@@ -118,12 +119,15 @@ public:
 protected:
 
     // Main tracking function. It is independent of the input sensor.
+    // 真正的跟踪流程
     void Track();
 
     // Map initialization for stereo and RGB-D
+    // 双目摄像头和RGBD摄像头的地图初始化
     void StereoInitialization();
 
     // Map initialization for monocular
+    // 单目摄像头的地图初始化
     void MonocularInitialization();
     void CreateInitialMapMonocular();
 
@@ -166,9 +170,9 @@ protected:
     Initializer* mpInitializer;
 
     //Local Map
-    KeyFrame* mpReferenceKF;
-    std::vector<KeyFrame*> mvpLocalKeyFrames;
-    std::vector<MapPoint*> mvpLocalMapPoints;
+    KeyFrame* mpReferenceKF;//参考关键帧
+    std::vector<KeyFrame*> mvpLocalKeyFrames;//局部地图的关键帧
+    std::vector<MapPoint*> mvpLocalMapPoints;//局部地图的地图点
     
     // System
     System* mpSystem;
@@ -179,7 +183,7 @@ protected:
     MapDrawer* mpMapDrawer;
 
     //Map
-    Map* mpMap;
+    Map* mpMap;//整个地图
 
     //Calibration matrix
     cv::Mat mK;
@@ -202,8 +206,8 @@ protected:
     int mnMatchesInliers;
 
     //Last Frame, KeyFrame and Relocalisation Info
-    KeyFrame* mpLastKeyFrame;
-    Frame mLastFrame;
+    KeyFrame* mpLastKeyFrame;//上一关键帧
+    Frame mLastFrame;//上一帧
     unsigned int mnLastKeyFrameId;
     unsigned int mnLastRelocFrameId;
 

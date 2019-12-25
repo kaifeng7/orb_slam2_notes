@@ -81,6 +81,8 @@ public:
     std::set<KeyFrame*> GetLoopEdges();
 
     // MapPoint observation functions
+    
+    //关键帧中添加地图点，说明在该关键帧下可以看到哪个地图点
     void AddMapPoint(MapPoint* pMP, const size_t &idx);
     void EraseMapPointMatch(const size_t &idx);
     void EraseMapPointMatch(MapPoint* pMP);

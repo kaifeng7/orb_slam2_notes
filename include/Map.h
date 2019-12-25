@@ -41,14 +41,17 @@ public:
     Map();
 
     void AddKeyFrame(KeyFrame* pKF);
+    //将新的MapPoint加入Map
     void AddMapPoint(MapPoint* pMP);
     void EraseMapPoint(MapPoint* pMP);
     void EraseKeyFrame(KeyFrame* pKF);
+    //设置ReferenceMapPoint
     void SetReferenceMapPoints(const std::vector<MapPoint*> &vpMPs);
     void InformNewBigChange();
     int GetLastBigChangeIdx();
 
     std::vector<KeyFrame*> GetAllKeyFrames();
+    //获取全部MapPoint
     std::vector<MapPoint*> GetAllMapPoints();
     std::vector<MapPoint*> GetReferenceMapPoints();
 

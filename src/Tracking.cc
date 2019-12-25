@@ -508,32 +508,36 @@ void Tracking::Track()
 
 void Tracking::StereoInitialization()
 {
-    if(mCurrentFrame.N>500)
+    if(mCurrentFrame.N>500)//当前帧关键点的数量大于500，才将此帧作为初始帧并认为其为关键帧
     {
         // Set Frame pose to the origin
+        // 设置初始帧的位资
         mCurrentFrame.SetPose(cv::Mat::eye(4,4,CV_32F));
 
         // Create KeyFrame
+        // 将当前帧（第一帧）作为初始关键帧（调用关键帧的构造函数）
         KeyFrame* pKFini = new KeyFrame(mCurrentFrame,mpMap,mpKeyFrameDB);
 
         // Insert KeyFrame in the map
+        //将关键帧加入地图中
         mpMap->AddKeyFrame(pKFini);
 
         // Create MapPoints and asscoiate to KeyFrame
+        //创建地图点并将其与关键帧建立联系
         for(int i=0; i<mCurrentFrame.N;i++)
         {
-            float z = mCurrentFrame.mvDepth[i];
+            float z = mCurrentFrame.mvDepth[i];//当前帧的第i个关键点的深度值
             if(z>0)
             {
                 cv::Mat x3D = mCurrentFrame.UnprojectStereo(i);
-                MapPoint* pNewMP = new MapPoint(x3D,pKFini,mpMap);
+                MapPoint* pNewMP = new MapPoint(x3D,pKFini,mpMap);//用该特征点构建新的MapPoint
                 pNewMP->AddObservation(pKFini,i);
                 pKFini->AddMapPoint(pNewMP,i);
                 pNewMP->ComputeDistinctiveDescriptors();
                 pNewMP->UpdateNormalAndDepth();
                 mpMap->AddMapPoint(pNewMP);
 
-                mCurrentFrame.mvpMapPoints[i]=pNewMP;
+                mCurrentFrame.mvpMapPoints[i]=pNewMP;//将MapPoint加入当前帧的MapPoints中，为当前Frame与MapPoint之间建立联系
             }
         }
 
@@ -541,22 +545,22 @@ void Tracking::StereoInitialization()
 
         mpLocalMapper->InsertKeyFrame(pKFini);
 
-        mLastFrame = Frame(mCurrentFrame);
+        mLastFrame = Frame(mCurrentFrame);//更新上一帧关键帧
         mnLastKeyFrameId=mCurrentFrame.mnId;
         mpLastKeyFrame = pKFini;
 
-        mvpLocalKeyFrames.push_back(pKFini);
-        mvpLocalMapPoints=mpMap->GetAllMapPoints();
-        mpReferenceKF = pKFini;
-        mCurrentFrame.mpReferenceKF = pKFini;
+        mvpLocalKeyFrames.push_back(pKFini);//将初始关键帧加入到局部地图的关键帧
+        mvpLocalMapPoints=mpMap->GetAllMapPoints();//将全部地图点加入到当前局部地图点
+        mpReferenceKF = pKFini;//将当前关键帧作为参考关键帧
+        mCurrentFrame.mpReferenceKF = pKFini;//将当前关键帧作为当前帧的参考关键帧
 
         mpMap->SetReferenceMapPoints(mvpLocalMapPoints);
 
-        mpMap->mvpKeyFrameOrigins.push_back(pKFini);
+        mpMap->mvpKeyFrameOrigins.push_back(pKFini);//将KeyFrame加入Map的原始关键帧
 
         mpMapDrawer->SetCurrentCameraPose(mCurrentFrame.mTcw);
 
-        mState=OK;
+        mState=OK;//更新跟踪状态
     }
 }
 

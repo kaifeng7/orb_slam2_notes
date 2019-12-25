@@ -51,6 +51,7 @@ public:
     std::map<KeyFrame*,size_t> GetObservations();
     int Observations();
 
+    //在地图点中添加关键帧 表明该地图点属于哪一个关键帧
     void AddObservation(KeyFrame* pKF,size_t idx);
     void EraseObservation(KeyFrame* pKF);
 
@@ -70,10 +71,12 @@ public:
         return mnFound;
     }
 
+    //从众多观测到该MapPoint的特征点中挑选出分数最高的descriptor
     void ComputeDistinctiveDescriptors();
 
     cv::Mat GetDescriptor();
-
+    
+    //更新该MapPoint平均观测方向以及观测距离的范围
     void UpdateNormalAndDepth();
 
     float GetMinDistanceInvariance();

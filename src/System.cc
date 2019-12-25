@@ -230,7 +230,7 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
         //若定位模式被关闭，则之前建立的局部地图被释放
         if (mbActivateLocalizationMode) //如果定位模式开启
         {
-            mpLocalMapper->RequestStop();//关闭局部建图功能
+            mpLocalMapper->RequestStop(); //关闭局部建图功能
 
             // Wait until Local Mapping has effectively stopped
             while (!mpLocalMapper->isStopped())
@@ -241,10 +241,10 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
             mpTracker->InformOnlyTracking(true);
             mbActivateLocalizationMode = false;
         }
-        if (mbDeactivateLocalizationMode)//如果定位模式被停用
+        if (mbDeactivateLocalizationMode) //如果定位模式被停用
         {
             mpTracker->InformOnlyTracking(false);
-            mpLocalMapper->Release();//之前建立的局部地图被释放
+            mpLocalMapper->Release(); //之前建立的局部地图被释放
             mbDeactivateLocalizationMode = false;
         }
     }
@@ -252,21 +252,21 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     // Check reset
     {
         unique_lock<mutex> lock(mMutexReset);
-        if (mbReset)//如果系统被重启，则重启追踪器
+        if (mbReset) //如果系统被重启，则重启追踪器
         {
             mpTracker->Reset();
             mbReset = false;
         }
     }
 
-    cv::Mat Tcw = mpTracker->GrabImageMonocular(im, timestamp);
+    cv::Mat Tcw = mpTracker->GrabImageMonocular(im, timestamp); //输入图像数据，转换为灰度图并构建当前帧，返回变换矩阵
 
     unique_lock<mutex> lock2(mMutexState);
-    mTrackingState = mpTracker->mState;//更新追踪状态
-    mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;//更新地图点向量
-    mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;//更新关键点向量
+    mTrackingState = mpTracker->mState;                        //更新追踪状态
+    mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints; //更新地图点向量
+    mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;   //更新关键点向量
 
-    return Tcw;//返回相机坐标系到世界坐标系的变换矩阵
+    return Tcw; //返回相机坐标系到世界坐标系的变换矩阵
 }
 
 void System::ActivateLocalizationMode()
@@ -331,11 +331,13 @@ void System::SaveTrajectoryTUM(const string &filename)
         return;
     }
 
-    vector<KeyFrame *> vpKFs = mpMap->GetAllKeyFrames();
-    sort(vpKFs.begin(), vpKFs.end(), KeyFrame::lId);
+    vector<KeyFrame *> vpKFs = mpMap->GetAllKeyFrames(); //获取所有关键帧
+    sort(vpKFs.begin(), vpKFs.end(), KeyFrame::lId);     //对关键帧按ID号进行排序
 
     // Transform all keyframes so that the first keyframe is at the origin.
     // After a loop closure the first keyframe might not be at the origin.
+    
+    //第一个关键帧的位姿信息
     cv::Mat Two = vpKFs[0]->GetPoseInverse();
 
     ofstream f;
@@ -360,9 +362,10 @@ void System::SaveTrajectoryTUM(const string &filename)
 
         KeyFrame *pKF = *lRit;
 
-        cv::Mat Trw = cv::Mat::eye(4, 4, CV_32F);
+        cv::Mat Trw = cv::Mat::eye(4, 4, CV_32F);//全局坐标系与参考帧之间的变换关系
 
         // If the reference keyframe was culled, traverse the spanning tree to get a suitable keyframe.
+        //如果已剔除关键帧，遍历生成树以获取关键帧        
         while (pKF->isBad())
         {
             Trw = Trw * pKF->mTcp;
@@ -370,10 +373,13 @@ void System::SaveTrajectoryTUM(const string &filename)
         }
 
         Trw = Trw * pKF->GetPose() * Two;
-
-        cv::Mat Tcw = (*lit) * Trw;
-        cv::Mat Rwc = Tcw.rowRange(0, 3).colRange(0, 3).t();
-        cv::Mat twc = -Rwc * Tcw.rowRange(0, 3).col(3);
+        /******************************
+         * T^(-1)=[R^T -R^T*t
+         *         0^T 1]
+         ******************************/
+        cv::Mat Tcw = (*lit) * Trw;//全局坐标系到相机坐标系的变换
+        cv::Mat Rwc = Tcw.rowRange(0, 3).colRange(0, 3).t();//相机坐标系到全局坐标系的旋转矩阵
+        cv::Mat twc = -Rwc * Tcw.rowRange(0, 3).col(3);//相机坐标系到全局坐标系的平移向量
 
         vector<float> q = Converter::toQuaternion(Rwc);
 
