@@ -65,6 +65,7 @@ public:
     MapPoint* GetReplaced();
 
     void IncreaseVisible(int n=1);
+    //增加查找CurrentFrame检查到的MapPoints的次数
     void IncreaseFound(int n=1);
     float GetFoundRatio();
     inline int GetFound(){

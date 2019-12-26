@@ -276,7 +276,7 @@ void Tracking::Track()
     // Get Map Mutex -> Map cannot be changed
     unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
 
-    if(mState==NOT_INITIALIZED)
+    if(mState==NOT_INITIALIZED)//没有初始化
     {
         if(mSensor==System::STEREO || mSensor==System::RGBD)
             StereoInitialization();
@@ -288,23 +288,23 @@ void Tracking::Track()
         if(mState!=OK)
             return;
     }
-    else
+    else//初始化完毕
     {
         // System is initialized. Track Frame.
         bool bOK;
 
         // Initial camera pose estimation using motion model or relocalization (if tracking is lost)
-        if(!mbOnlyTracking)
+        if(!mbOnlyTracking)//不是纯追踪模式
         {
             // Local Mapping is activated. This is the normal behaviour, unless
             // you explicitly activate the "only tracking" mode.
 
-            if(mState==OK)
+            if(mState==OK)//追踪正常
             {
                 // Local Mapping might have changed some MapPoints tracked in last frame
                 CheckReplacedInLastFrame();
 
-                if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2)
+                if(mVelocity.empty() || mCurrentFrame.mnId<mnLastRelocFrameId+2)//刚完成重定位
                 {
                     bOK = TrackReferenceKeyFrame();
                 }
@@ -315,26 +315,26 @@ void Tracking::Track()
                         bOK = TrackReferenceKeyFrame();
                 }
             }
-            else
+            else//追踪丢失
             {
-                bOK = Relocalization();
+                bOK = Relocalization();//重定位
             }
         }
-        else
+        else//纯追踪模式
         {
             // Localization Mode: Local Mapping is deactivated
 
-            if(mState==LOST)
+            if(mState==LOST)//追踪丢失
             {
                 bOK = Relocalization();
             }
-            else
+            else//追踪正常
             {
-                if(!mbVO)
+                if(!mbVO)//足够的MapPoints匹配
                 {
                     // In last frame we tracked enough MapPoints in the map
 
-                    if(!mVelocity.empty())
+                    if(!mVelocity.empty())//速度不为零
                     {
                         bOK = TrackWithMotionModel();
                     }
@@ -343,35 +343,36 @@ void Tracking::Track()
                         bOK = TrackReferenceKeyFrame();
                     }
                 }
-                else
+                else//很少的MapPoints匹配
                 {
                     // In last frame we tracked mainly "visual odometry" points.
 
                     // We compute two camera poses, one from motion model and one doing relocalization.
                     // If relocalization is sucessfull we choose that solution, otherwise we retain
                     // the "visual odometry" solution.
+                    // 运动模型跟踪与重定位同时进行
 
-                    bool bOKMM = false;
-                    bool bOKReloc = false;
+                    bool bOKMM = false;//运动跟踪是否成功
+                    bool bOKReloc = false;//重定位是否成功
                     vector<MapPoint*> vpMPsMM;
                     vector<bool> vbOutMM;
                     cv::Mat TcwMM;
-                    if(!mVelocity.empty())
+                    if(!mVelocity.empty())//如果速度不为空
                     {
                         bOKMM = TrackWithMotionModel();
                         vpMPsMM = mCurrentFrame.mvpMapPoints;
                         vbOutMM = mCurrentFrame.mvbOutlier;
                         TcwMM = mCurrentFrame.mTcw.clone();
                     }
-                    bOKReloc = Relocalization();
+                    bOKReloc = Relocalization();//重定位获取相机位资
 
-                    if(bOKMM && !bOKReloc)
+                    if(bOKMM && !bOKReloc)//如果跟踪成功，重定位失败
                     {
                         mCurrentFrame.SetPose(TcwMM);
                         mCurrentFrame.mvpMapPoints = vpMPsMM;
                         mCurrentFrame.mvbOutlier = vbOutMM;
 
-                        if(mbVO)
+                        if(mbVO)//此帧匹配了很少的MapPoints，跟踪效果不好
                         {
                             for(int i =0; i<mCurrentFrame.N; i++)
                             {
@@ -382,7 +383,7 @@ void Tracking::Track()
                             }
                         }
                     }
-                    else if(bOKReloc)
+                    else if(bOKReloc)//重定位成功
                     {
                         mbVO = false;
                     }
@@ -549,8 +550,8 @@ void Tracking::StereoInitialization()
         mnLastKeyFrameId=mCurrentFrame.mnId;
         mpLastKeyFrame = pKFini;
 
-        mvpLocalKeyFrames.push_back(pKFini);//将初始关键帧加入到局部地图的关键帧
-        mvpLocalMapPoints=mpMap->GetAllMapPoints();//将全部地图点加入到当前局部地图点
+        mvpLocalKeyFrames.push_back(pKFini);//将初始KeyFrame加入到局部地图中
+        mvpLocalMapPoints=mpMap->GetAllMapPoints();//将全部MapPoint加入到当前局部地图点
         mpReferenceKF = pKFini;//将当前关键帧作为参考关键帧
         mCurrentFrame.mpReferenceKF = pKFini;//将当前关键帧作为当前帧的参考关键帧
 

@@ -80,10 +80,10 @@ public:
     // Tracking states
     enum eTrackingState{
         SYSTEM_NOT_READY=-1,
-        NO_IMAGES_YET=0,
-        NOT_INITIALIZED=1,
-        OK=2,
-        LOST=3
+        NO_IMAGES_YET=0,//当前没有图片，收到新的图片后，转为NOT_INITIALIZED
+        NOT_INITIALIZED=1,//当前没有初始化追踪线程，初始化后，转为OK
+        OK=2,//没有丢帧或者复位的情况下系统一直处于OK状态
+        LOST=3//当前追踪线程丢失，上一帧追踪失败，下一帧进行重定位
     };
 
     eTrackingState mState;//跟踪状态标志
@@ -131,11 +131,15 @@ protected:
     void MonocularInitialization();
     void CreateInitialMapMonocular();
 
+    //检查并更新LastFrame中的MapPoints
     void CheckReplacedInLastFrame();
+    //参考帧模型进行跟踪
     bool TrackReferenceKeyFrame();
     void UpdateLastFrame();
+    //运动模型进行跟踪
     bool TrackWithMotionModel();
 
+    //重定位
     bool Relocalization();
 
     void UpdateLocalMap();
@@ -152,6 +156,9 @@ protected:
     // points in the map. Still tracking will continue if there are enough matches with temporal points.
     // In that case we are doing visual odometry. The system will try to do relocalization to recover
     // "zero-drift" localization to the map.
+    // 只在纯定位模式下才被使用
+    // false->匹配了很多MapPoints，跟踪正常
+    // true ->匹配了很少MapPoints，跟踪失败
     bool mbVO;
 
     //Other Thread Pointers
@@ -212,6 +219,7 @@ protected:
     unsigned int mnLastRelocFrameId;
 
     //Motion Model
+    //上一帧与上上帧之间的位姿变换关系
     cv::Mat mVelocity;
 
     //Color order (true RGB, false BGR, ignored if grayscale)
