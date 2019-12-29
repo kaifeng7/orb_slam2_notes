@@ -56,6 +56,7 @@ public:
     std::vector<MapPoint*> GetReferenceMapPoints();
 
     long unsigned int MapPointsInMap();
+    //地图中的关键帧
     long unsigned  KeyFramesInMap();
 
     long unsigned int GetMaxKFid();

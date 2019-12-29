@@ -47,7 +47,9 @@ public:
 
     // Pose functions
     void SetPose(const cv::Mat &Tcw);
+    //得到位姿
     cv::Mat GetPose();
+    //得到位姿的逆
     cv::Mat GetPoseInverse();
     cv::Mat GetCameraCenter();
     cv::Mat GetStereoCenter();
@@ -63,7 +65,9 @@ public:
     void UpdateConnections();
     void UpdateBestCovisibles();
     std::set<KeyFrame *> GetConnectedKeyFrames();
+    //得到共视关键帧
     std::vector<KeyFrame* > GetVectorCovisibleKeyFrames();
+    //得到共视度最高的关键帧
     std::vector<KeyFrame*> GetBestCovisibilityKeyFrames(const int &N);
     std::vector<KeyFrame*> GetCovisiblesByWeight(const int &w);
     int GetWeight(KeyFrame* pKF);
@@ -89,6 +93,7 @@ public:
     void ReplaceMapPointMatch(const size_t &idx, MapPoint* pMP);
     std::set<MapPoint*> GetMapPoints();
     std::vector<MapPoint*> GetMapPointMatches();
+    //被观察到的地图点
     int TrackedMapPoints(const int &minObs);
     MapPoint* GetMapPoint(const size_t &idx);
 
@@ -100,7 +105,10 @@ public:
     bool IsInImage(const float &x, const float &y) const;
 
     // Enable/Disable bad flag changes
+    
+    //设置关键帧为不可擦除状态
     void SetNotErase();
+    //设置关键帧为可擦除状态
     void SetErase();
 
     // Set/check bad flag

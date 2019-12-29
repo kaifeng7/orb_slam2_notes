@@ -104,14 +104,14 @@ bool LoopClosing::DetectLoop()
 {
     {
         unique_lock<mutex> lock(mMutexLoopQueue);
-        mpCurrentKF = mlpLoopKeyFrameQueue.front();
+        mpCurrentKF = mlpLoopKeyFrameQueue.front();//提取待回环检测的关键帧作为当前关键帧
         mlpLoopKeyFrameQueue.pop_front();
         // Avoid that a keyframe can be erased while it is being process by this thread
         mpCurrentKF->SetNotErase();
     }
 
     //If the map contains less than 10 KF or less than 10 KF have passed from last loop detection
-    if(mpCurrentKF->mnId<mLastLoopKFid+10)
+    if(mpCurrentKF->mnId<mLastLoopKFid+10)//当前关键帧ID<上次回环关键帧ID+10
     {
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();

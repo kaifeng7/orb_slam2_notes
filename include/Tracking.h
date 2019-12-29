@@ -25,15 +25,15 @@
 #include<opencv2/core/core.hpp>
 #include<opencv2/features2d/features2d.hpp>
 
-#include"Viewer.h"
-#include"FrameDrawer.h"
-#include"Map.h"
-#include"LocalMapping.h"
-#include"LoopClosing.h"
-#include"Frame.h"
+#include "Viewer.h"
+#include "FrameDrawer.h"
+#include "Map.h"
+#include "LocalMapping.h"
+#include "LoopClosing.h"
+#include "Frame.h"
 #include "ORBVocabulary.h"
-#include"KeyFrameDatabase.h"
-#include"ORBextractor.h"
+#include "KeyFrameDatabase.h"
+#include "ORBextractor.h"
 #include "Initializer.h"
 #include "MapDrawer.h"
 #include "System.h"
@@ -108,10 +108,10 @@ public:
     list<cv::Mat> mlRelativeFramePoses;//每一图像帧与其参考帧之间的姿态变换关系（用于绘制轨迹）
     list<KeyFrame*> mlpReferences;//每一图像帧的参考关键帧（用于绘制轨迹）
     list<double> mlFrameTimes;//每一图像帧的时间戳（用于绘制轨迹）
-    list<bool> mlbLost;
+    list<bool> mlbLost;//每一图像帧的跟踪状态
 
     // True if local mapping is deactivated and we are performing only localization
-    //true->只定位，不建图局部地图
+    //纯定位模式，true->只定位，不建图局部地图
     bool mbOnlyTracking;
 
     void Reset();
@@ -133,22 +133,46 @@ protected:
 
     //检查并更新LastFrame中的MapPoints
     void CheckReplacedInLastFrame();
-    //参考帧模型进行跟踪
+
+    //参考关键帧进行跟踪
+    //1.首先计算当前帧的词袋向量。
+    //2.根据词袋向量进行参考关键帧和当前帧进行匹配 ，得到匹配点。
+    //3.如果匹配点的数量满足要求，则将匹配点设为当前帧的地图点，上一帧的位姿设为当前帧的位姿。优化过后剔除外点。
+    //4.最后根据匹配点的数量判定跟踪是否成功。
     bool TrackReferenceKeyFrame();
+    
     void UpdateLastFrame();
     //运动模型进行跟踪
+    //1.根据上一帧的位姿和速度来计算当前帧的位姿。
+    //2.遍历上一帧中所有地图点，将上一帧的地图点向当前帧进行投影，投影过后在当前帧中找到一个描述子距离最相近的特征点作为投影点的匹配点。
+    //3.如果匹配点的数量满足要求，则对当前帧进行位姿优化。优化过后剔除外点。
+    //4.最后根据匹配点的数量判断跟踪是否成功。
     bool TrackWithMotionModel();
 
     //重定位
+    //重定位的过程中进行了三次匹配三次优化。
+    //第一次匹配为词袋匹配，用于初步确定当前帧的地图点。
+    //后两次匹配均为投影匹配，目的是为了增加匹配点，为优化位姿做准备。
+    //而三次优化的过程是为了根据匹配点不断的优化当前帧的位姿，使其满足要求。
     bool Relocalization();
 
+    //更新局部地图
     void UpdateLocalMap();
+
     void UpdateLocalPoints();
     void UpdateLocalKeyFrames();
 
+    //局部地图跟踪
+    //1.更新局部地图。将之前的局部地图数据清空，重新构建局部地图。构建局部地图的过程就是重新确定局部地图关键帧和局部地图地图点的过程。
+    //2.局部地图中的地图点与当前帧的地图点进行匹配，然后利用匹配的地图点来优化当前帧的位姿。
+    //3.根据优化后的位姿重新更新匹配点的内点和外点。
+    //4.根据内点数量判定跟踪是否成功。
     bool TrackLocalMap();
+
+    //匹配局部地图中的地图点和当前帧的地图点
     void SearchLocalPoints();
 
+    //插入新的关键帧
     bool NeedNewKeyFrame();
     void CreateNewKeyFrame();
 

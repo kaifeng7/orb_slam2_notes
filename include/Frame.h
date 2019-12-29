@@ -21,7 +21,7 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include<vector>
+#include <vector>
 
 #include "MapPoint.h"
 #include "Thirdparty/DBoW2/DBoW2/BowVector.h"
@@ -63,6 +63,7 @@ public:
     void ExtractORB(int flag, const cv::Mat &im);
 
     // Compute Bag of Words representation.
+    // 计算当前帧的词袋向量
     void ComputeBoW();
 
     // Set the camera pose.

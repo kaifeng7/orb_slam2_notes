@@ -55,19 +55,25 @@ public:
     // Thread Synch
     void RequestStop();
     void RequestReset();
+    //暂停局部建图
     bool Stop();
     void Release();
+    //局部地图已停止
     bool isStopped();
+    //局部地图被请求停止
     bool stopRequested();
     bool AcceptKeyFrames();
+    //设置是否接受关键帧
     void SetAcceptKeyFrames(bool flag);
     bool SetNotStop(bool flag);
 
+    //中断BA
     void InterruptBA();
 
     void RequestFinish();
     bool isFinished();
 
+    //局部建图线程中待插入的关键帧数
     int KeyframesInQueue(){
         unique_lock<std::mutex> lock(mMutexNewKFs);
         return mlNewKeyFrames.size();
@@ -75,26 +81,34 @@ public:
 
 protected:
 
+    //检查队列中是否存在关键帧
     bool CheckNewKeyFrames();
+    //处理新的关键帧
     void ProcessNewKeyFrame();
+    //创建新的地图点
     void CreateNewMapPoints();
-
+    //剔除冗余地图点
     void MapPointCulling();
+    //当前帧与相邻关键帧进行融合
     void SearchInNeighbors();
 
+    //剔除冗余关键帧
     void KeyFrameCulling();
-
+    //计算 Fundamental Matrix
     cv::Mat ComputeF12(KeyFrame* &pKF1, KeyFrame* &pKF2);
 
     cv::Mat SkewSymmetricMatrix(const cv::Mat &v);
 
     bool mbMonocular;
 
+    //重置
     void ResetIfRequested();
     bool mbResetRequested;
     std::mutex mMutexReset;
 
+    //检查建图过程是否完成
     bool CheckFinish();
+    //设置建图完成标志
     void SetFinish();
     bool mbFinishRequested;
     bool mbFinished;

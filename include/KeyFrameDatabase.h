@@ -55,6 +55,7 @@ public:
    std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
 
    // Relocalization
+   //挑选出重定位候选KeyFrame
    std::vector<KeyFrame*> DetectRelocalizationCandidates(Frame* F);
 
 protected:

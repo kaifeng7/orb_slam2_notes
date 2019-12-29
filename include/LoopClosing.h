@@ -60,6 +60,7 @@ public:
     // Main function
     void Run();
 
+    //将关键帧加入回环检测
     void InsertKeyFrame(KeyFrame *pKF);
 
     void RequestReset();
@@ -84,20 +85,26 @@ public:
 
 protected:
 
+    //检测队列中是否有新的关键帧
     bool CheckNewKeyFrames();
 
+    //检测是否产生回环
     bool DetectLoop();
 
+    //相似变换矩阵是否计算完成
     bool ComputeSim3();
 
     void SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap);
 
+    //回环校正
     void CorrectLoop();
 
+    //复位请求
     void ResetIfRequested();
     bool mbResetRequested;
     std::mutex mMutexReset;
-
+    
+    //回环检测是否结束
     bool CheckFinish();
     void SetFinish();
     bool mbFinishRequested;
@@ -112,7 +119,7 @@ protected:
 
     LocalMapping *mpLocalMapper;
 
-    std::list<KeyFrame*> mlpLoopKeyFrameQueue;
+    std::list<KeyFrame*> mlpLoopKeyFrameQueue;//待回环检测的关键帧队列
 
     std::mutex mMutexLoopQueue;
 
@@ -120,10 +127,10 @@ protected:
     float mnCovisibilityConsistencyTh;
 
     // Loop detector variables
-    KeyFrame* mpCurrentKF;
-    KeyFrame* mpMatchedKF;
-    std::vector<ConsistentGroup> mvConsistentGroups;
-    std::vector<KeyFrame*> mvpEnoughConsistentCandidates;
+    KeyFrame* mpCurrentKF;//当前关键帧
+    KeyFrame* mpMatchedKF;//匹配关键帧
+    std::vector<ConsistentGroup> mvConsistentGroups;//所有连续的关键帧组
+    std::vector<KeyFrame*> mvpEnoughConsistentCandidates;//充分连接的候选关键帧组
     std::vector<KeyFrame*> mvpCurrentConnectedKFs;
     std::vector<MapPoint*> mvpCurrentMatchedPoints;
     std::vector<MapPoint*> mvpLoopMapPoints;
