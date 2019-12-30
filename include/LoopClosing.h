@@ -60,7 +60,7 @@ public:
     // Main function
     void Run();
 
-    //将关键帧加入回环检测
+    //将关键帧加入待回环检测队列
     void InsertKeyFrame(KeyFrame *pKF);
 
     void RequestReset();
@@ -130,7 +130,7 @@ protected:
     KeyFrame* mpCurrentKF;//当前关键帧
     KeyFrame* mpMatchedKF;//匹配关键帧
     std::vector<ConsistentGroup> mvConsistentGroups;//所有连续的关键帧组
-    std::vector<KeyFrame*> mvpEnoughConsistentCandidates;//充分连接的候选关键帧组
+    std::vector<KeyFrame*> mvpEnoughConsistentCandidates;//充分连接的候选关键帧组(一致性超过阈值的帧)
     std::vector<KeyFrame*> mvpCurrentConnectedKFs;
     std::vector<MapPoint*> mvpCurrentMatchedPoints;
     std::vector<MapPoint*> mvpLoopMapPoints;

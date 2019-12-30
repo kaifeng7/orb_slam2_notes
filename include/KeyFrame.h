@@ -46,29 +46,41 @@ public:
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
     // Pose functions
+    //设置位姿
     void SetPose(const cv::Mat &Tcw);
-    //得到位姿
+    //获取位姿
     cv::Mat GetPose();
-    //得到位姿的逆
+    //获取位姿的逆
     cv::Mat GetPoseInverse();
+    //获取传感器的中心坐标
     cv::Mat GetCameraCenter();
+    //获取双目的中心坐标
     cv::Mat GetStereoCenter();
+    //获取旋转矩阵
     cv::Mat GetRotation();
+    //获取平移矩阵
     cv::Mat GetTranslation();
 
     // Bag of Words Representation
+    //计算词袋特征
     void ComputeBoW();
 
     // Covisibility graph functions
+    //增加连接
     void AddConnection(KeyFrame* pKF, const int &weight);
+    //移除连接
     void EraseConnection(KeyFrame* pKF);
+    //更新连接
     void UpdateConnections();
+    //更新最好的共视
     void UpdateBestCovisibles();
+    //获取连接的关键帧
     std::set<KeyFrame *> GetConnectedKeyFrames();
     //得到共视关键帧
     std::vector<KeyFrame* > GetVectorCovisibleKeyFrames();
     //得到共视度最高的关键帧
     std::vector<KeyFrame*> GetBestCovisibilityKeyFrames(const int &N);
+    //通过权重来获得Covisibility
     std::vector<KeyFrame*> GetCovisiblesByWeight(const int &w);
     int GetWeight(KeyFrame* pKF);
 
@@ -88,7 +100,11 @@ public:
     
     //关键帧中添加地图点，说明在该关键帧下可以看到哪个地图点
     void AddMapPoint(MapPoint* pMP, const size_t &idx);
+
+    //擦除关键帧中匹配到的地图点（输入为索引）
     void EraseMapPointMatch(const size_t &idx);
+    
+    //擦除关键帧中匹配到的地图点（输入为MapPoint）
     void EraseMapPointMatch(MapPoint* pMP);
     void ReplaceMapPointMatch(const size_t &idx, MapPoint* pMP);
     std::set<MapPoint*> GetMapPoints();
@@ -205,9 +221,9 @@ protected:
     // SE3 Pose and camera center
     cv::Mat Tcw;
     cv::Mat Twc;
-    cv::Mat Ow;
+    cv::Mat Ow;//=-R^T*t,相机在世界坐标系下的坐标
 
-    cv::Mat Cw; // Stereo middel point. Only for visualization
+    cv::Mat Cw; // Stereo middel point. Only for visualization，双目摄像机baseline中点坐标
 
     // MapPoints associated to keypoints
     std::vector<MapPoint*> mvpMapPoints;
@@ -238,9 +254,9 @@ protected:
 
     Map* mpMap;
 
-    std::mutex mMutexPose;
-    std::mutex mMutexConnections;
-    std::mutex mMutexFeatures;
+    std::mutex mMutexPose;//KeyFrame‘s Pose
+    std::mutex mMutexConnections;//KeyFrame connections
+    std::mutex mMutexFeatures;//KeyFrame and Features
 };
 
 } //namespace ORB_SLAM

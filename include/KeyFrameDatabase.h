@@ -52,6 +52,7 @@ public:
    void clear();
 
    // Loop Detection
+   //挑选后补回环关键帧
    std::vector<KeyFrame *> DetectLoopCandidates(KeyFrame* pKF, float minScore);
 
    // Relocalization

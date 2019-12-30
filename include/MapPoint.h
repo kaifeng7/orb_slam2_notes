@@ -47,7 +47,8 @@ public:
 
     cv::Mat GetNormal();
     KeyFrame* GetReferenceKeyFrame();
-
+    
+    //得到观测map
     std::map<KeyFrame*,size_t> GetObservations();
     int Observations();
 
@@ -55,7 +56,9 @@ public:
     void AddObservation(KeyFrame* pKF,size_t idx);
     void EraseObservation(KeyFrame* pKF);
 
+    //该地图点是KeyFrame中的第几个观测点，如果没有，返回-1
     int GetIndexInKeyFrame(KeyFrame* pKF);
+    //该地图点是否被KeyFrame观测到
     bool IsInKeyFrame(KeyFrame* pKF);
 
     void SetBadFlag();
@@ -122,6 +125,7 @@ protected:
      cv::Mat mWorldPos;
 
      // Keyframes observing the point and associated index in keyframe
+     //该特征点在哪个KeyFrame中被观测到，以及是KeyFrame中的第几个特征点
      std::map<KeyFrame*,size_t> mObservations;
 
      // Mean viewing direction
