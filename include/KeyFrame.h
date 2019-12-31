@@ -46,33 +46,21 @@ public:
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
 
     // Pose functions
-    //设置位姿
     void SetPose(const cv::Mat &Tcw);
-    //获取位姿
     cv::Mat GetPose();
-    //获取位姿的逆
     cv::Mat GetPoseInverse();
-    //获取传感器的中心坐标
     cv::Mat GetCameraCenter();
-    //获取双目的中心坐标
     cv::Mat GetStereoCenter();
-    //获取旋转矩阵
     cv::Mat GetRotation();
-    //获取平移矩阵
     cv::Mat GetTranslation();
 
     // Bag of Words Representation
-    //计算词袋特征
     void ComputeBoW();
 
     // Covisibility graph functions
-    //增加连接
     void AddConnection(KeyFrame* pKF, const int &weight);
-    //移除连接
     void EraseConnection(KeyFrame* pKF);
-    //更新连接
     void UpdateConnections();
-    //更新最好的共视
     void UpdateBestCovisibles();
     //获取连接的关键帧
     std::set<KeyFrame *> GetConnectedKeyFrames();
@@ -166,169 +154,135 @@ public:
     // The following variables are accesed from only 1 thread or never change (no mutex needed).
 public:
 
-    //下一帧ID
-    static long unsigned int nNextId;
-    //当前ID
-    long unsigned int mnId;
-    //当前帧ID
-    const long unsigned int mnFrameId;
+    static long unsigned int nNextId; //下一帧ID
+    long unsigned int mnId; //当前ID
+    const long unsigned int mnFrameId; //当前帧ID
+    const double mTimeStamp; //时间戳
 
-    //时间戳
-    const double mTimeStamp;
 
     // Grid (to speed up feature matching)
     //用于加速特征点匹配部分
 
-    //栅格的长
-    const int mnGridCols;
-    //栅格的宽
-    const int mnGridRows;
-    //栅格的长的倒数
-    const float mfGridElementWidthInv;
-    //栅格的宽的倒数
-    const float mfGridElementHeightInv;
+    const int mnGridCols; //栅格的长
+    const int mnGridRows; //栅格的宽
+    const float mfGridElementWidthInv; //栅格的长的倒数
+    const float mfGridElementHeightInv; //栅格的宽的倒数
+
 
     // Variables used by the tracking
     //用在跟踪部分
 
-    //跟踪参考帧
-    long unsigned int mnTrackReferenceForFrame;
-    //关键帧中使用的目标点
-    long unsigned int mnFuseTargetForKF;
+    long unsigned int mnTrackReferenceForFrame; //跟踪参考帧
+    long unsigned int mnFuseTargetForKF; //关键帧中使用的目标点
 
     // Variables used by the local mapping
     //用在局部地图部分
 
-    //关键帧的局部BA
-    long unsigned int mnBALocalForKF;
-    //关键帧的固定点的BA
-    long unsigned int mnBAFixedForKF;
+    long unsigned int mnBALocalForKF; //关键帧的局部BA
+    long unsigned int mnBAFixedForKF; //关键帧的固定点的BA
 
     // Variables used by the keyframe database
     //用在关键帧数据集部分
 
-    //回环队列
-    long unsigned int mnLoopQuery;
-    //回环字符标志
-    int mnLoopWords;
-    //回环得分
-    float mLoopScore;
-    //重定位的队列
-    long unsigned int mnRelocQuery;
-    //重定位的字符标志
-    int mnRelocWords;
-    //重定位的得分
-    float mRelocScore;
+    long unsigned int mnLoopQuery; //回环队列
+    int mnLoopWords; //回环字符标志
+    float mLoopScore; //回环得分
+    long unsigned int mnRelocQuery; //重定位的队列
+    int mnRelocWords; //重定位的字符标志
+    float mRelocScore; //重定位的得分
+
 
     // Variables used by loop closing
     //用于闭环检测部分
 
-    //全局BA的变换矩阵
-    cv::Mat mTcwGBA;
-    //之前全局BA的变换矩阵
-    cv::Mat mTcwBefGBA;
-    //关键帧用于全局BA
-    long unsigned int mnBAGlobalForKF;
+    cv::Mat mTcwGBA; //全局BA的变换矩阵
+    cv::Mat mTcwBefGBA; //之前全局BA的变换矩阵
+    long unsigned int mnBAGlobalForKF; //关键帧用于全局BA
 
     // Calibration parameters
-    //相机标定
-    const float fx, fy, cx, cy, invfx, invfy, mbf, mb, mThDepth;
+    const float fx, fy, cx, cy, invfx, invfy, mbf, mb, mThDepth; //相机标定
 
     // Number of KeyPoints
-    //关键点数量
-    const int N;
+    const int N; //关键点数量
+
 
     // KeyPoints, stereo coordinate and descriptors (all associated by an index)
 
-    //存放关键点组
-    const std::vector<cv::KeyPoint> mvKeys;
-    //存放去畸变后关键点组
-    const std::vector<cv::KeyPoint> mvKeysUn;
-    //存放右图上的值组
-    const std::vector<float> mvuRight; // negative value for monocular points
-    //存放深度值组
-    const std::vector<float> mvDepth; // negative value for monocular points
-    //描述子
-    const cv::Mat mDescriptors;
+    const std::vector<cv::KeyPoint> mvKeys; //存放关键点组
+    const std::vector<cv::KeyPoint> mvKeysUn; //存放去畸变后关键点组
+    const std::vector<float> mvuRight; //存放右图上的值组 // negative value for monocular points
+    const std::vector<float> mvDepth; //存放深度值组 // negative value for monocular points    
+    const cv::Mat mDescriptors; //描述子
 
     //BoW
-    DBoW2::BowVector mBowVec;   //词袋向量
-
-    DBoW2::FeatureVector mFeatVec;  //特征向量
-
+    DBoW2::BowVector mBowVec; //词袋向量
+    DBoW2::FeatureVector mFeatVec; //特征向量
 
     // Pose relative to parent (this is computed when bad flag is activated)
-    //相对于父节点的变换矩阵
-    cv::Mat mTcp;
+    cv::Mat mTcp; //相对于父节点的变换矩阵
 
     // Scale
-    //尺度层数
-    const int mnScaleLevels;
-    //尺度因子
-    const float mfScaleFactor;
-    //尺度因子取对数
-    const float mfLogScaleFactor;
-    //尺度因子组
-    const std::vector<float> mvScaleFactors;
-    //平方组
-    const std::vector<float> mvLevelSigma2;
-    //平方倒数组
-    const std::vector<float> mvInvLevelSigma2;
+
+    const int mnScaleLevels; //尺度层数
+    const float mfScaleFactor; //尺度因子
+    const float mfLogScaleFactor; //尺度因子取对数
+    const std::vector<float> mvScaleFactors; //尺度因子组
+    const std::vector<float> mvLevelSigma2; //平方组
+    const std::vector<float> mvInvLevelSigma2; //平方倒数组
 
     // Image bounds and calibration
-    //图像边界值
+    // 图像边界值
     const int mnMinX;
     const int mnMinY;
     const int mnMaxX;
     const int mnMaxY;
    
-    const cv::Mat mK; //内参矩阵
+    const cv::Mat mK;   //内参矩阵
 
 
     // The following variables need to be accessed trough a mutex to be thread safe.
 protected:
 
     // SE3 Pose and camera center
-    cv::Mat Tcw;//世界到相机的变换矩阵
-    cv::Mat Twc;//相机到世界的变换矩阵
-    cv::Mat Ow;//=-R^T*t,相机在世界坐标系下的坐标
+    cv::Mat Tcw; //世界到相机的变换矩阵
+    cv::Mat Twc; //相机到世界的变换矩阵
+    cv::Mat Ow; //=-R^T*t,相机在世界坐标系下的坐标
 
     //Stereo middel point. Only for visualization
     cv::Mat Cw; //双目摄像机baseline中点坐标
 
     // MapPoints associated to keypoints
-    std::vector<MapPoint*> mvpMapPoints;//在此KeyFrame下，可观测到的MapPoints
+    std::vector<MapPoint*> mvpMapPoints; //在此KeyFrame下，可观测到的MapPoints
 
     // BoW
-    KeyFrameDatabase* mpKeyFrameDB;//KeyFrame数据集指针
-    ORBVocabulary* mpORBvocabulary;//orb词汇指针
+    KeyFrameDatabase* mpKeyFrameDB; //KeyFrame数据集指针
+    ORBVocabulary* mpORBvocabulary; //orb词汇指针
 
     // Grid over the image to speed up feature matching
-    std::vector< std::vector <std::vector<size_t> > > mGrid;//二位容器的栅格
-
-    std::map<KeyFrame*,int> mConnectedKeyFrameWeights;//连接关键帧与权重的map
-    std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames;//按顺序连接的关键帧组
-    std::vector<int> mvOrderedWeights;//顺序权重
+    std::vector< std::vector <std::vector<size_t> > > mGrid; //二位容器的栅格
+    std::map<KeyFrame*,int> mConnectedKeyFrameWeights; //连接关键帧与权重的map
+    std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames; //按顺序连接的关键帧组
+    std::vector<int> mvOrderedWeights; //顺序权重
 
     // Spanning Tree and Loop Edges
-    bool mbFirstConnection;//第一个是否连接
-    KeyFrame* mpParent;//关键帧的父节点
-    std::set<KeyFrame*> mspChildrens;//子节点组
-    std::set<KeyFrame*> mspLoopEdges;//闭环边组
+    bool mbFirstConnection; //第一个是否连接
+    KeyFrame* mpParent; //关键帧的父节点
+    std::set<KeyFrame*> mspChildrens; //子节点组
+    std::set<KeyFrame*> mspLoopEdges; //闭环边组
 
     // Bad flags
-    bool mbNotErase;//判断不要移除
-    bool mbToBeErased;//判断将要移除
-    bool mbBad;//判断坏点
+    bool mbNotErase; //判断不要移除
+    bool mbToBeErased; //判断将要移除
+    bool mbBad; //判断坏点
 
     // Only for visualization
-    float mHalfBaseline; // 基线距离的一半
+    float mHalfBaseline; //基线距离的一半
 
-    Map* mpMap;//Map
+    Map* mpMap; //Map
 
-    std::mutex mMutexPose;//KeyFrame‘s Pose
-    std::mutex mMutexConnections;//KeyFrame connections
-    std::mutex mMutexFeatures;//KeyFrame and Features
+    std::mutex mMutexPose; //KeyFrame‘s Pose
+    std::mutex mMutexConnections; //KeyFrame connections
+    std::mutex mMutexFeatures; //KeyFrame and Features
 };
 
 } //namespace ORB_SLAM
