@@ -58,12 +58,9 @@ public:
     Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor* extractor,ORBVocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth);
 
     // Extract ORB on the image. 0 for left image and 1 for right image.
-    //提取的关键点存放在mvKeys和mDescriptors中
-    //ORB是直接调orbExtractor提取的
     void ExtractORB(int flag, const cv::Mat &im);
 
     // Compute Bag of Words representation.
-    // 计算当前帧的词袋向量
     void ComputeBoW();
 
     // Set the camera pose.
@@ -99,7 +96,6 @@ public:
     void ComputeStereoFromRGBD(const cv::Mat &imDepth);
 
     // Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
-    //将特征点反投影到3D世界坐标系下
     cv::Mat UnprojectStereo(const int &i);
 
 public:
@@ -120,7 +116,7 @@ public:
     static float cy;
     static float invfx;
     static float invfy;
-    cv::Mat mDistCoef;
+    cv::Mat mDistCoef;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
 
     // Stereo baseline multiplied by fx.
     float mbf;
@@ -143,8 +139,8 @@ public:
 
     // Corresponding stereo coordinate and depth for each keypoint.
     // "Monocular" keypoints have a negative value.
-    std::vector<float> mvuRight;
-    std::vector<float> mvDepth;
+    std::vector<float> mvuRight;//the uv of right picture
+    std::vector<float> mvDepth;//the depth of feature
 
     // Bag of Words Vector structures.
     DBoW2::BowVector mBowVec;
@@ -164,12 +160,11 @@ public:
     static float mfGridElementHeightInv;
     std::vector<std::size_t> mGrid[FRAME_GRID_COLS][FRAME_GRID_ROWS];
 
-    // Camera pose.
-    cv::Mat mTcw;
+    cv::Mat mTcw;// Camera pose.
 
-    // Current and Next Frame id.
-    static long unsigned int nNextId;
-    long unsigned int mnId;
+
+    static long unsigned int nNextId;//Next Frame id.
+    long unsigned int mnId;//Current Frame id
 
     // Reference Keyframe.
     KeyFrame* mpReferenceKF;
@@ -189,7 +184,7 @@ public:
     static float mnMinY;
     static float mnMaxY;
 
-    static bool mbInitialComputations;
+    static bool mbInitialComputations;//initial computation's flag
 
 
 private:
@@ -206,10 +201,10 @@ private:
     void AssignFeaturesToGrid();
 
     // Rotation, translation and camera center
-    cv::Mat mRcw;
-    cv::Mat mtcw;
-    cv::Mat mRwc;
-    cv::Mat mOw; //==mtwc
+    cv::Mat mRcw;//rotation Matrix
+    cv::Mat mtcw;//translation Matrix
+    cv::Mat mRwc;//inverse of rotation Matrix
+    cv::Mat mOw; //==mtwc,camera center
 };
 
 }// namespace ORB_SLAM

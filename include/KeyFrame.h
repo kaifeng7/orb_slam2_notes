@@ -163,8 +163,8 @@ public:
     // Grid (to speed up feature matching)
     //用于加速特征点匹配部分
 
-    const int mnGridCols; //栅格的长
-    const int mnGridRows; //栅格的宽
+    const int mnGridCols; //number of grid columns
+    const int mnGridRows; //number of grid rows
     const float mfGridElementWidthInv; //栅格的长的倒数
     const float mfGridElementHeightInv; //栅格的宽的倒数
 
@@ -184,19 +184,19 @@ public:
     // Variables used by the keyframe database
     //用在关键帧数据集部分
 
-    long unsigned int mnLoopQuery; //回环队列
+    long unsigned int mnLoopQuery; //number of loop query
     int mnLoopWords; //回环字符标志
-    float mLoopScore; //回环得分
-    long unsigned int mnRelocQuery; //重定位的队列
+    float mLoopScore; //score of loop 
+    long unsigned int mnRelocQuery; //number of relocalization query
     int mnRelocWords; //重定位的字符标志
-    float mRelocScore; //重定位的得分
+    float mRelocScore; //score of relocalization
 
 
     // Variables used by loop closing
     //用于闭环检测部分
 
-    cv::Mat mTcwGBA; //全局BA的变换矩阵
-    cv::Mat mTcwBefGBA; //之前全局BA的变换矩阵
+    cv::Mat mTcwGBA; //transformation of global BA
+    cv::Mat mTcwBefGBA; //transformation of before global BA
     long unsigned int mnBAGlobalForKF; //关键帧用于全局BA
 
     // Calibration parameters
@@ -231,32 +231,31 @@ public:
     const std::vector<float> mvInvLevelSigma2; //平方倒数组
 
     // Image bounds and calibration
-    // 图像边界值
     const int mnMinX;
     const int mnMinY;
     const int mnMaxX;
     const int mnMaxY;
    
-    const cv::Mat mK;   //内参矩阵
+    const cv::Mat mK;   //internal parameter matrix
 
 
     // The following variables need to be accessed trough a mutex to be thread safe.
 protected:
 
     // SE3 Pose and camera center
-    cv::Mat Tcw; //世界到相机的变换矩阵
-    cv::Mat Twc; //相机到世界的变换矩阵
-    cv::Mat Ow; //=-R^T*t,相机在世界坐标系下的坐标
+    cv::Mat Tcw; //transform matrix of world to camera 
+    cv::Mat Twc; //transform matrix of camera to world 
+    cv::Mat Ow; //=-R^T*t,camera center
 
     //Stereo middel point. Only for visualization
     cv::Mat Cw; //双目摄像机baseline中点坐标
 
     // MapPoints associated to keypoints
-    std::vector<MapPoint*> mvpMapPoints; //在此KeyFrame下，可观测到的MapPoints
+    std::vector<MapPoint*> mvpMapPoints; //the MapPoints which are observed
 
     // BoW
-    KeyFrameDatabase* mpKeyFrameDB; //KeyFrame数据集指针
-    ORBVocabulary* mpORBvocabulary; //orb词汇指针
+    KeyFrameDatabase* mpKeyFrameDB; //KeyFrame Database
+    ORBVocabulary* mpORBvocabulary; //orb vocabulary
 
     // Grid over the image to speed up feature matching
     std::vector< std::vector <std::vector<size_t> > > mGrid; //二位容器的栅格
@@ -265,18 +264,18 @@ protected:
     std::vector<int> mvOrderedWeights; //顺序权重
 
     // Spanning Tree and Loop Edges
-    bool mbFirstConnection; //第一个是否连接
-    KeyFrame* mpParent; //关键帧的父节点
-    std::set<KeyFrame*> mspChildrens; //子节点组
-    std::set<KeyFrame*> mspLoopEdges; //闭环边组
+    bool mbFirstConnection; //the flag of first connection
+    KeyFrame* mpParent; //parent of KeyFrame
+    std::set<KeyFrame*> mspChildrens; //childrens of KeyFrame
+    std::set<KeyFrame*> mspLoopEdges; //loop edges of KeyFrame
 
     // Bad flags
-    bool mbNotErase; //判断不要移除
-    bool mbToBeErased; //判断将要移除
-    bool mbBad; //判断坏点
+    bool mbNotErase; //the flag of not erase
+    bool mbToBeErased; //the flag of to be erased
+    bool mbBad; //the flag of bad 
 
     // Only for visualization
-    float mHalfBaseline; //基线距离的一半
+    float mHalfBaseline; //half of baseline
 
     Map* mpMap; //Map
 

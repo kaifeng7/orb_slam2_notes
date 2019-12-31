@@ -31,9 +31,9 @@ long unsigned int KeyFrame::nNextId = 0;
 /**
  * @brief Construct a new Key Frame:: Key Frame object
  * 
- * @param F 当前帧
- * @param pMap 全局地图Map
- * @param pKFDB 关键帧数据集
+ * @param F Frame
+ * @param pMap global Map
+ * @param pKFDB KeyFrame DataBase
  */
 KeyFrame::KeyFrame(Frame &F, Map *pMap, KeyFrameDatabase *pKFDB) : mnFrameId(F.mnId), mTimeStamp(F.mTimeStamp), mnGridCols(FRAME_GRID_COLS), mnGridRows(FRAME_GRID_ROWS),
                                                                    mfGridElementWidthInv(F.mfGridElementWidthInv), mfGridElementHeightInv(F.mfGridElementHeightInv),
@@ -78,18 +78,18 @@ void KeyFrame::ComputeBoW()
 }
 
 /**
- * @brief 设置姿态
+ * @brief set pose
  * 
- * @param Tcw_ 变换矩阵
+ * @param Tcw_ transform matrix
  */
 void KeyFrame::SetPose(const cv::Mat &Tcw_)
 {
     unique_lock<mutex> lock(mMutexPose);
     Tcw_.copyTo(Tcw);
-    cv::Mat Rcw = Tcw.rowRange(0, 3).colRange(0, 3); //旋转矩阵
-    cv::Mat tcw = Tcw.rowRange(0, 3).col(3);         //平移矩阵
-    cv::Mat Rwc = Rcw.t();                           //旋转矩阵的逆
-    Ow = -Rwc * tcw;                                 //camera中心坐标
+    cv::Mat Rcw = Tcw.rowRange(0, 3).colRange(0, 3); //rotation matrix
+    cv::Mat tcw = Tcw.rowRange(0, 3).col(3);         //translation matrix
+    cv::Mat Rwc = Rcw.t();                           //inverse of rotation matrix
+    Ow = -Rwc * tcw;                                 //center of camera
 
     Twc = cv::Mat::eye(4, 4, Tcw.type());
     Rwc.copyTo(Twc.rowRange(0, 3).colRange(0, 3));
@@ -99,7 +99,7 @@ void KeyFrame::SetPose(const cv::Mat &Tcw_)
 }
 
 /**
- * @brief 获取位姿信息
+ * @brief get pose
  * 
  * @return cv::Mat Tcw
  */
@@ -110,7 +110,7 @@ cv::Mat KeyFrame::GetPose()
 }
 
 /**
- * @brief 获取位姿信息的逆
+ * @brief get inverse of pose 
  * 
  * @return cv::Mat Twc
  */
