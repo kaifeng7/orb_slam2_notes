@@ -29,6 +29,13 @@ namespace ORB_SLAM2
 long unsigned int MapPoint::nNextId=0;
 mutex MapPoint::mGlobalMutex;
 
+/**
+ * @brief Construct a new Map Point:: Map Point object
+ * 
+ * @param Pos MapPoint pose
+ * @param pRefKF reference KeyFrame
+ * @param pMap Map
+ */
 MapPoint::MapPoint(const cv::Mat &Pos, KeyFrame *pRefKF, Map* pMap):
     mnFirstKFid(pRefKF->mnId), mnFirstFrame(pRefKF->mnFrameId), nObs(0), mnTrackReferenceForFrame(0),
     mnLastFrameSeen(0), mnBALocalForKF(0), mnFuseCandidateForKF(0), mnLoopPointForKF(0), mnCorrectedByKF(0),
@@ -43,12 +50,20 @@ MapPoint::MapPoint(const cv::Mat &Pos, KeyFrame *pRefKF, Map* pMap):
     mnId=nNextId++;
 }
 
+/**
+ * @brief Construct a new Map Point:: Map Point object
+ * 
+ * @param Pos the MapPoint pose
+ * @param pMap Map
+ * @param pFrame Frame
+ * @param idxF Frame id
+ */
 MapPoint::MapPoint(const cv::Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF):
     mnFirstKFid(-1), mnFirstFrame(pFrame->mnId), nObs(0), mnTrackReferenceForFrame(0), mnLastFrameSeen(0),
     mnBALocalForKF(0), mnFuseCandidateForKF(0),mnLoopPointForKF(0), mnCorrectedByKF(0),
     mnCorrectedReference(0), mnBAGlobalForKF(0), mpRefKF(static_cast<KeyFrame*>(NULL)), mnVisible(1),
     mnFound(1), mbBad(false), mpReplaced(NULL), mpMap(pMap)
-{
+{   //TODO
     Pos.copyTo(mWorldPos);
     cv::Mat Ow = pFrame->GetCameraCenter();
     mNormalVector = mWorldPos - Ow;
@@ -70,6 +85,12 @@ MapPoint::MapPoint(const cv::Mat &Pos, Map* pMap, Frame* pFrame, const int &idxF
     mnId=nNextId++;
 }
 
+
+/**
+ * @brief set pose of MapPoint in world coordinates
+ * 
+ * @param Pos pose of MapPoint
+ */
 void MapPoint::SetWorldPos(const cv::Mat &Pos)
 {
     unique_lock<mutex> lock2(mGlobalMutex);
@@ -77,24 +98,45 @@ void MapPoint::SetWorldPos(const cv::Mat &Pos)
     Pos.copyTo(mWorldPos);
 }
 
+/**
+ * @brief set pose of MapPoint in world coordinates
+ * 
+ * @return cv::Mat pose of MapPoint
+ */
 cv::Mat MapPoint::GetWorldPos()
 {
     unique_lock<mutex> lock(mMutexPos);
     return mWorldPos.clone();
 }
 
+/**
+ * @brief get normal vector of MapPoint
+ * 
+ * @return cv::Mat 
+ */
 cv::Mat MapPoint::GetNormal()
 {
     unique_lock<mutex> lock(mMutexPos);
     return mNormalVector.clone();
 }
 
+/**
+ * @brief get reference KeyFrame
+ * 
+ * @return KeyFrame* 
+ */
 KeyFrame* MapPoint::GetReferenceKeyFrame()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mpRefKF;
 }
 
+/**
+ * @brief add KeyFrame information in MapPoint,which can observe the MapPoint
+ * 
+ * @param pKF KeyFrame
+ * @param idx MapPoint index in KeyFrame
+ */
 void MapPoint::AddObservation(KeyFrame* pKF, size_t idx)
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -102,7 +144,7 @@ void MapPoint::AddObservation(KeyFrame* pKF, size_t idx)
         return;
     mObservations[pKF]=idx;
 
-    if(pKF->mvuRight[idx]>=0)
+    if(pKF->mvuRight[idx]>=0)//right image can also observe the MapPoint
         nObs+=2;
     else
         nObs++;

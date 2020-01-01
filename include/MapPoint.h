@@ -89,40 +89,40 @@ public:
     int PredictScale(const float &currentDist, Frame* pF);
 
 public:
-    long unsigned int mnId;
-    static long unsigned int nNextId;
-    long int mnFirstKFid;
-    long int mnFirstFrame;
-    int nObs;
+    long unsigned int mnId;//the current MapPoint id
+    static long unsigned int nNextId;//the next MapPoint id
+    long int mnFirstKFid;//the first KeyFrame id
+    long int mnFirstFrame;//the first Frame
+    int nObs;//number of observation
 
     // Variables used by the tracking
-    float mTrackProjX;
-    float mTrackProjY;
-    float mTrackProjXR;
-    bool mbTrackInView;
-    int mnTrackScaleLevel;
-    float mTrackViewCos;
-    long unsigned int mnTrackReferenceForFrame;
-    long unsigned int mnLastFrameSeen;
+    float mTrackProjX;//the x of project when tracking
+    float mTrackProjY;//the y of project when tracking
+    float mTrackProjXR;// the radius of search
+    bool mbTrackInView;//flag to identify the point in view
+    int mnTrackScaleLevel;//scale level when tracking
+    float mTrackViewCos;//the cos of view when tracking
+    long unsigned int mnTrackReferenceForFrame;//id of reference frame
+    long unsigned int mnLastFrameSeen;//number of MapPoints viewed in last frame 
 
     // Variables used by local mapping
-    long unsigned int mnBALocalForKF;
-    long unsigned int mnFuseCandidateForKF;
+    long unsigned int mnBALocalForKF;// local BA for KeyFrame
+    long unsigned int mnFuseCandidateForKF;// 
 
     // Variables used by loop closing
     long unsigned int mnLoopPointForKF;
     long unsigned int mnCorrectedByKF;
     long unsigned int mnCorrectedReference;    
-    cv::Mat mPosGBA;
-    long unsigned int mnBAGlobalForKF;
+    cv::Mat mPosGBA;//pose of global BA
+    long unsigned int mnBAGlobalForKF;//global BA for KeyFrame
 
 
-    static std::mutex mGlobalMutex;
+    static std::mutex mGlobalMutex;// global mutex
 
 protected:    
 
      // Position in absolute coordinates
-     cv::Mat mWorldPos;
+     cv::Mat mWorldPos;//pose in world coordinate
 
      // Keyframes observing the point and associated index in keyframe
      //该特征点在哪个KeyFrame中被观测到，以及是KeyFrame中的第几个特征点
@@ -138,21 +138,21 @@ protected:
      KeyFrame* mpRefKF;
 
      // Tracking counters
-     int mnVisible;
-     int mnFound;
+     int mnVisible;//number of visible KeyFrame
+     int mnFound;//number of Found KeyFrame
 
      // Bad flag (we do not currently erase MapPoint from memory)
      bool mbBad;
-     MapPoint* mpReplaced;
+     MapPoint* mpReplaced;//used by replacing MapPoint
 
      // Scale invariance distances
      float mfMinDistance;
      float mfMaxDistance;
 
-     Map* mpMap;
+     Map* mpMap;//global map
 
-     std::mutex mMutexPos;
-     std::mutex mMutexFeatures;
+     std::mutex mMutexPos;//MapPoint Pose Mutex
+     std::mutex mMutexFeatures;//Features Mutex
 };
 
 } //namespace ORB_SLAM

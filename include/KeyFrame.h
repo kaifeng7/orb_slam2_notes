@@ -62,83 +62,52 @@ public:
     void EraseConnection(KeyFrame* pKF);
     void UpdateConnections();
     void UpdateBestCovisibles();
-    //获取连接的关键帧
     std::set<KeyFrame *> GetConnectedKeyFrames();
-    //得到共视关键帧
     std::vector<KeyFrame* > GetVectorCovisibleKeyFrames();
-    //得到共视度最高的关键帧
     std::vector<KeyFrame*> GetBestCovisibilityKeyFrames(const int &N);
-    //通过权重来获得Covisibility
     std::vector<KeyFrame*> GetCovisiblesByWeight(const int &w);
-    //获取权重
     int GetWeight(KeyFrame* pKF);
 
     // Spanning tree functions
-    //增加子树
     void AddChild(KeyFrame* pKF);
-    //移除子树
     void EraseChild(KeyFrame* pKF);
-    //改变父节点
     void ChangeParent(KeyFrame* pKF);
-    //获取子节点
     std::set<KeyFrame*> GetChilds();
-    //获得父节点
     KeyFrame* GetParent();
-    //判断此关键帧是否有子节点
     bool hasChild(KeyFrame* pKF);
 
     // Loop Edges
-    //增加回环的边
     void AddLoopEdge(KeyFrame* pKF);
-    //获取回环的边
     std::set<KeyFrame*> GetLoopEdges();
 
     // MapPoint observation functions
     
-    //关键帧中添加地图点，说明在该关键帧下可以看到哪个地图点
     void AddMapPoint(MapPoint* pMP, const size_t &idx);
-
-    //移除关键帧中匹配到的地图点（输入为索引）
     void EraseMapPointMatch(const size_t &idx);
-    
-    //移除关键帧中匹配到的地图点（输入为MapPoint）
     void EraseMapPointMatch(MapPoint* pMP);
-    //替换MapPoint的匹配
     void ReplaceMapPointMatch(const size_t &idx, MapPoint* pMP);
-    //获取MapPoints组
     std::set<MapPoint*> GetMapPoints();
-    //获取MapPoint的匹配
     std::vector<MapPoint*> GetMapPointMatches();
-    //可观察到的地图点
     int TrackedMapPoints(const int &minObs);
-    //获取MapPoint
     MapPoint* GetMapPoint(const size_t &idx);
 
     // KeyPoint functions
-    //获取区域内的特征点
     std::vector<size_t> GetFeaturesInArea(const float &x, const float  &y, const float  &r) const;
-    //重投影双目摄像头
     cv::Mat UnprojectStereo(int i);
 
     // Image
-    //判断是否在图像里
     bool IsInImage(const float &x, const float &y) const;
 
     // Enable/Disable bad flag changes
     
-    //设置关键帧为不可移除状态
     void SetNotErase();
-    //设置关键帧为可移除状态
     void SetErase();
 
     // Set/check bad flag
-    //设置坏的标志位
     void SetBadFlag();
-    //判断是否是坏的KeyFrame
     bool isBad();
 
     // Compute Scene Depth (q=2 median). Used in monocular.
-    //计算深度信息（只在单目模式下）
     float ComputeSceneMedianDepth(const int q);
     //权重的比较
     static bool weightComp( int a, int b){
