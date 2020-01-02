@@ -471,10 +471,11 @@ void MapPoint::UpdateNormalAndDepth()
         KeyFrame* pKF = mit->first;
         cv::Mat Owi = pKF->GetCameraCenter();
         cv::Mat normali = mWorldPos - Owi;
-        normal = normal + normali/cv::norm(normali);
+        normal = normal + normali/cv::norm(normali);//Sum of normalized normal vectors
         n++;
     }
 
+    //TODO
     cv::Mat PC = Pos - pRefKF->GetCameraCenter();
     const float dist = cv::norm(PC);
     const int level = pRefKF->mvKeysUn[observations[pRefKF]].octave;
@@ -489,18 +490,35 @@ void MapPoint::UpdateNormalAndDepth()
     }
 }
 
+/**
+ * @brief get min distance invariance
+ * 
+ * @return float 
+ */
 float MapPoint::GetMinDistanceInvariance()
 {
     unique_lock<mutex> lock(mMutexPos);
     return 0.8f*mfMinDistance;
 }
 
+/**
+ * @brief get max distance invariance
+ * 
+ * @return float 
+ */
 float MapPoint::GetMaxDistanceInvariance()
 {
     unique_lock<mutex> lock(mMutexPos);
     return 1.2f*mfMaxDistance;
 }
 
+/**
+ * @brief predict scale
+ * 
+ * @param currentDist current distance
+ * @param pKF KeyFrame
+ * @return int 
+ */
 int MapPoint::PredictScale(const float &currentDist, KeyFrame* pKF)
 {
     float ratio;

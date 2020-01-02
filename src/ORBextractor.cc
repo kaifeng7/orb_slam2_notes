@@ -74,6 +74,14 @@ const int HALF_PATCH_SIZE = 15;
 const int EDGE_THRESHOLD = 19;
 
 
+/**
+ * @brief 
+ * 
+ * @param image an image
+ * @param pt a point in the image
+ * @param u_max 
+ * @return float 
+ */
 static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
 {
     int m_01 = 0, m_10 = 0;
@@ -85,7 +93,7 @@ static float IC_Angle(const Mat& image, Point2f pt,  const vector<int> & u_max)
         m_10 += u * center[u];
 
     // Go line by line in the circuI853lar patch
-    int step = (int)image.step1();
+    int step = (int)image.step1();//number of channel
     for (int v = 1; v <= HALF_PATCH_SIZE; ++v)
     {
         // Proceed over the two lines
@@ -469,6 +477,13 @@ ORBextractor::ORBextractor(int _nfeatures, float _scaleFactor, int _nlevels,
     }
 }
 
+/**
+ * @brief compute Orientation
+ * 
+ * @param image 
+ * @param keypoints 
+ * @param umax 
+ */
 static void computeOrientation(const Mat& image, vector<KeyPoint>& keypoints, const vector<int>& umax)
 {
     for (vector<KeyPoint>::iterator keypoint = keypoints.begin(),
@@ -478,8 +493,25 @@ static void computeOrientation(const Mat& image, vector<KeyPoint>& keypoints, co
     }
 }
 
+/**
+ * @brief divide points into four parts
+ * 
+ * @param n1 
+ * @param n2 
+ * @param n3 
+ * @param n4 
+ */
 void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNode &n3, ExtractorNode &n4)
 {
+    /**
+     * ---------------
+     * |      |      |
+     * |      |      |
+     * |-------------|
+     * |      |      |
+     * |      |      |
+     * ---------------
+     */
     const int halfX = ceil(static_cast<float>(UR.x-UL.x)/2);
     const int halfY = ceil(static_cast<float>(BR.y-UL.y)/2);
 
@@ -536,10 +568,30 @@ void ExtractorNode::DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNo
 
 }
 
+/**
+ * @brief distribute OctTree
+ * 
+ * @param vToDistributeKeys distributed KeyPoints
+ * @param minX image's min x
+ * @param maxX image's max x
+ * @param minY image's min Y
+ * @param maxY image's max Y
+ * @param N number of KeyPoints
+ * @param level 
+ * @return vector<cv::KeyPoint> 
+ */
 vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>& vToDistributeKeys, const int &minX,
                                        const int &maxX, const int &minY, const int &maxY, const int &N, const int &level)
 {
     // Compute how many initial nodes   
+    /**
+     * --------------------------------max_X,min_Y
+     * |       |       |       |
+     * |       |       |       |  ...  
+     * |       |       |       |
+     * --------------------------------max_X,max_Y
+     * 
+     */
     const int nIni = round(static_cast<float>(maxX-minX)/(maxY-minY));
 
     const float hX = static_cast<float>(maxX-minX)/nIni;
@@ -578,7 +630,7 @@ vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>&
             lit->bNoMore=true;
             lit++;
         }
-        else if(lit->vKeys.empty())
+        else if(lit->vKeys.empty())//this extractor node has not any KeyPoint
             lit = lNodes.erase(lit);
         else
             lit++;
@@ -589,7 +641,7 @@ vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>&
     int iteration = 0;
 
     vector<pair<int,ExtractorNode*> > vSizeAndPointerToNode;
-    vSizeAndPointerToNode.reserve(lNodes.size()*4);
+    vSizeAndPointerToNode.reserve(lNodes.size()*4);//ExtratorNode can be divided four children nodes
 
     while(!bFinish)
     {
@@ -662,7 +714,7 @@ vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>&
                 lit=lNodes.erase(lit);
                 continue;
             }
-        }       
+        }
 
         // Finish if there are more nodes than required features
         // or all nodes contain just one point
@@ -762,6 +814,11 @@ vector<cv::KeyPoint> ORBextractor::DistributeOctTree(const vector<cv::KeyPoint>&
     return vResultKeys;
 }
 
+/**
+ * @brief computer KeyPoints OctTree
+ * 
+ * @param allKeypoints 
+ */
 void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoints)
 {
     allKeypoints.resize(nlevels);
@@ -769,7 +826,7 @@ void ORBextractor::ComputeKeyPointsOctTree(vector<vector<KeyPoint> >& allKeypoin
     const float W = 30;
 
     for (int level = 0; level < nlevels; ++level)
-    {
+    {   //remove the edge,length is EDGE_THRESHOLD-3
         const int minBorderX = EDGE_THRESHOLD-3;
         const int minBorderY = minBorderX;
         const int maxBorderX = mvImagePyramid[level].cols-EDGE_THRESHOLD+3;
@@ -1040,6 +1097,14 @@ static void computeDescriptors(const Mat& image, vector<KeyPoint>& keypoints, Ma
         computeOrbDescriptor(keypoints[i], image, &pattern[0], descriptors.ptr((int)i));
 }
 
+/**
+ * @brief overload () operator
+ *        extracting KeyPoints and caculating descriptors
+ * @param _image 
+ * @param _mask 
+ * @param _keypoints 
+ * @param _descriptors 
+ */
 void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPoint>& _keypoints,
                       OutputArray _descriptors)
 { 
@@ -1047,7 +1112,7 @@ void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPo
         return;
 
     Mat image = _image.getMat();
-    assert(image.type() == CV_8UC1 );
+    assert(image.type() == CV_8UC1 );//assure image is single channel
 
     // Pre-compute the scale pyramid
     ComputePyramid(image);
@@ -1104,6 +1169,11 @@ void ORBextractor::operator()( InputArray _image, InputArray _mask, vector<KeyPo
     }
 }
 
+/**
+ * @brief building a Pyramid model
+ * 
+ * @param image 
+ */
 void ORBextractor::ComputePyramid(cv::Mat image)
 {
     for (int level = 0; level < nlevels; ++level)

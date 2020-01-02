@@ -37,9 +37,9 @@ public:
     void DivideNode(ExtractorNode &n1, ExtractorNode &n2, ExtractorNode &n3, ExtractorNode &n4);
 
     std::vector<cv::KeyPoint> vKeys;
-    cv::Point2i UL, UR, BL, BR;
+    cv::Point2i UL, UR, BL, BR;//up left,up right,bottom left,bottom right
     std::list<ExtractorNode>::iterator lit;
-    bool bNoMore;
+    bool bNoMore;//whether not to continue dividing
 };
 
 class ORBextractor
