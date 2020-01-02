@@ -150,6 +150,11 @@ void MapPoint::AddObservation(KeyFrame* pKF, size_t idx)
         nObs++;
 }
 
+/**
+ * @brief erase KeyFrame information in MapPoint,which can observe the MapPoint
+ * 
+ * @param pKF KeyFrame
+ */
 void MapPoint::EraseObservation(KeyFrame* pKF)
 {
     bool bBad=false;
@@ -158,15 +163,15 @@ void MapPoint::EraseObservation(KeyFrame* pKF)
         if(mObservations.count(pKF))
         {
             int idx = mObservations[pKF];
-            if(pKF->mvuRight[idx]>=0)
+            if(pKF->mvuRight[idx]>=0)//right image can also observe the MapPoint
                 nObs-=2;
             else
                 nObs--;
 
             mObservations.erase(pKF);
 
-            if(mpRefKF==pKF)
-                mpRefKF=mObservations.begin()->first;
+            if(mpRefKF==pKF)//this KeyFrame is reference KeyFrame
+                mpRefKF=mObservations.begin()->first;//reference KeyFrame is replaced by the KeyFrame which is the first KeyFrame observe the MapPoint
 
             // If only 2 observations or less, discard point
             if(nObs<=2)
@@ -178,18 +183,32 @@ void MapPoint::EraseObservation(KeyFrame* pKF)
         SetBadFlag();
 }
 
+/**
+ * @brief get Keyframes observing the point and associated index in keyframe
+ * 
+ * @return map<KeyFrame*, size_t> 
+ */
 map<KeyFrame*, size_t> MapPoint::GetObservations()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mObservations;
 }
 
+/**
+ * @brief get number of this MapPoint observed in KeyFrames
+ * 
+ * @return int 
+ */
 int MapPoint::Observations()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return nObs;
 }
 
+/**
+ * @brief set bad flag about less observed MapPoint
+ * 
+ */
 void MapPoint::SetBadFlag()
 {
     map<KeyFrame*,size_t> obs;
@@ -198,17 +217,22 @@ void MapPoint::SetBadFlag()
         unique_lock<mutex> lock2(mMutexPos);
         mbBad=true;
         obs = mObservations;
-        mObservations.clear();
+        mObservations.clear();//clear member variable
     }
     for(map<KeyFrame*,size_t>::iterator mit=obs.begin(), mend=obs.end(); mit!=mend; mit++)
     {
         KeyFrame* pKF = mit->first;
-        pKF->EraseMapPointMatch(mit->second);
+        pKF->EraseMapPointMatch(mit->second);//erase the KeyFrame's match association with MapPoints
     }
 
-    mpMap->EraseMapPoint(this);
+    mpMap->EraseMapPoint(this);//erase this MapPoint in the Map
 }
 
+/**
+ * @brief get replacing MapPoint
+ * 
+ * @return MapPoint* mpReplaced
+ */
 MapPoint* MapPoint::GetReplaced()
 {
     unique_lock<mutex> lock1(mMutexFeatures);
@@ -216,9 +240,14 @@ MapPoint* MapPoint::GetReplaced()
     return mpReplaced;
 }
 
+/**
+ * @brief replace the MapPoint
+ * 
+ * @param pMP replacing MapPoint
+ */
 void MapPoint::Replace(MapPoint* pMP)
 {
-    if(pMP->mnId==this->mnId)
+    if(pMP->mnId==this->mnId)//this MapPoint is equal to replacing MapPoint
         return;
 
     int nvisible, nfound;
@@ -240,22 +269,29 @@ void MapPoint::Replace(MapPoint* pMP)
         KeyFrame* pKF = mit->first;
 
         if(!pMP->IsInKeyFrame(pKF))
-        {
+        {//replace the Match with KeyFrame and add observations in MapPoint
             pKF->ReplaceMapPointMatch(mit->second, pMP);
             pMP->AddObservation(pKF,mit->second);
         }
         else
-        {
+        {//only erase replaced MapPoint
             pKF->EraseMapPointMatch(mit->second);
         }
     }
+    //TODO
     pMP->IncreaseFound(nfound);
     pMP->IncreaseVisible(nvisible);
     pMP->ComputeDistinctiveDescriptors();
 
-    mpMap->EraseMapPoint(this);
+    mpMap->EraseMapPoint(this);//erase replaced MapPoint
 }
 
+/**
+ * @brief get flag about bad 
+ * 
+ * @return true this MapPoint is bad
+ * @return false this MapPoint is good
+ */
 bool MapPoint::isBad()
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -263,24 +299,43 @@ bool MapPoint::isBad()
     return mbBad;
 }
 
+/**
+ * @brief increase the count of visible
+ * 
+ * @param n 
+ */
 void MapPoint::IncreaseVisible(int n)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     mnVisible+=n;
 }
 
+/**
+ * @brief increase the count of found
+ * 
+ * @param n 
+ */
 void MapPoint::IncreaseFound(int n)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     mnFound+=n;
 }
 
+/**
+ * @brief get proportion of found times to visible times
+ * 
+ * @return float 
+ */
 float MapPoint::GetFoundRatio()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return static_cast<float>(mnFound)/mnVisible;
 }
 
+/**
+ * @brief compute the descriptors of MapPoint
+ * 
+ */
 void MapPoint::ComputeDistinctiveDescriptors()
 {
     // Retrieve all observed descriptors
@@ -290,12 +345,12 @@ void MapPoint::ComputeDistinctiveDescriptors()
 
     {
         unique_lock<mutex> lock1(mMutexFeatures);
-        if(mbBad)
+        if(mbBad)//confirm this MapPoint is not bad point
             return;
         observations=mObservations;
     }
 
-    if(observations.empty())
+    if(observations.empty())//confirm this MapPoint can be observed by KeyFrame
         return;
 
     vDescriptors.reserve(observations.size());
@@ -305,7 +360,7 @@ void MapPoint::ComputeDistinctiveDescriptors()
         KeyFrame* pKF = mit->first;
 
         if(!pKF->isBad())
-            vDescriptors.push_back(pKF->mDescriptors.row(mit->second));
+            vDescriptors.push_back(pKF->mDescriptors.row(mit->second));//extract the descriptor of MapPoint in this KeyFrame
     }
 
     if(vDescriptors.empty())
@@ -331,9 +386,9 @@ void MapPoint::ComputeDistinctiveDescriptors()
     int BestIdx = 0;
     for(size_t i=0;i<N;i++)
     {
-        vector<int> vDists(Distances[i],Distances[i]+N);
+        vector<int> vDists(Distances[i],Distances[i]+N);//each row
         sort(vDists.begin(),vDists.end());
-        int median = vDists[0.5*(N-1)];
+        int median = vDists[0.5*(N-1)];//get median value in discriptors
 
         if(median<BestMedian)
         {
@@ -348,12 +403,23 @@ void MapPoint::ComputeDistinctiveDescriptors()
     }
 }
 
+/**
+ * @brief get the descriptor about this MapPoint
+ * 
+ * @return cv::Mat 
+ */
 cv::Mat MapPoint::GetDescriptor()
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return mDescriptor.clone();
 }
 
+/**
+ * @brief get index of observation in KeyFrame
+ * 
+ * @param pKF KeyFrame
+ * @return int index
+ */
 int MapPoint::GetIndexInKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexFeatures);
@@ -363,12 +429,23 @@ int MapPoint::GetIndexInKeyFrame(KeyFrame *pKF)
         return -1;
 }
 
+/**
+ * @brief determine whether the KeyFrame observe this MapPoints
+ * 
+ * @param pKF KeyFrame
+ * @return true 
+ * @return false 
+ */
 bool MapPoint::IsInKeyFrame(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutexFeatures);
     return (mObservations.count(pKF));
 }
 
+/**
+ * @brief update normal and depth about MapPoint
+ * 
+ */
 void MapPoint::UpdateNormalAndDepth()
 {
     map<KeyFrame*,size_t> observations;
