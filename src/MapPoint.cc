@@ -536,6 +536,13 @@ int MapPoint::PredictScale(const float &currentDist, KeyFrame* pKF)
     return nScale;
 }
 
+/**
+ * @brief predict scale
+ * 
+ * @param currentDist current distance
+ * @param pF Frame
+ * @return int 
+ */
 int MapPoint::PredictScale(const float &currentDist, Frame* pF)
 {
     float ratio;

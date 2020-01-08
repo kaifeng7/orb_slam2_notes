@@ -53,18 +53,15 @@ public:
 
     // Project MapPoints seen in KeyFrame into the Frame and search matches.
     // Used in relocalisation (Tracking)
-    //根据投影方式进行匹配
     int SearchByProjection(Frame &CurrentFrame, KeyFrame* pKF, const std::set<MapPoint*> &sAlreadyFound, const float th, const int ORBdist);
 
     // Project MapPoints using a Similarity Transformation and search matches.
     // Used in loop detection (Loop Closing)
-    //根据投影方式进行匹配
      int SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const std::vector<MapPoint*> &vpPoints, std::vector<MapPoint*> &vpMatched, int th);
 
     // Search matches between MapPoints in a KeyFrame and ORB in a Frame.
     // Brute force constrained to ORB that belong to the same vocabulary node (at a certain level)
     // Used in Relocalisation and Loop Detection
-    //根据词袋模型进行匹配
     int SearchByBoW(KeyFrame *pKF, Frame &F, std::vector<MapPoint*> &vpMapPointMatches);
     int SearchByBoW(KeyFrame *pKF1, KeyFrame* pKF2, std::vector<MapPoint*> &vpMatches12);
 
@@ -87,8 +84,8 @@ public:
 
 public:
 
-    static const int TH_LOW;
-    static const int TH_HIGH;
+    static const int TH_LOW;//threshold low
+    static const int TH_HIGH;//threshold high
     static const int HISTO_LENGTH;
 
 
@@ -101,7 +98,7 @@ protected:
     void ComputeThreeMaxima(std::vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3);
 
     float mfNNratio;
-    bool mbCheckOrientation;
+    bool mbCheckOrientation;//flag to check orientation
 };
 
 }// namespace ORB_SLAM

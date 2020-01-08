@@ -84,6 +84,15 @@ void KeyFrame::ComputeBoW()
  */
 void KeyFrame::SetPose(const cv::Mat &Tcw_)
 {
+    /*--------------------------------
+    T_cw=[R_cw  t_cw
+          0^T   I]
+    
+    T_wc=[R_cw^(-1) -R_cw^(-1)*t
+          0^T       I]
+
+    ----------------------------------*/
+
     unique_lock<mutex> lock(mMutexPose);
     Tcw_.copyTo(Tcw);
     cv::Mat Rcw = Tcw.rowRange(0, 3).colRange(0, 3); //rotation matrix

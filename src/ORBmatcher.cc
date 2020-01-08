@@ -38,10 +38,24 @@ const int ORBmatcher::TH_HIGH = 100;
 const int ORBmatcher::TH_LOW = 50;
 const int ORBmatcher::HISTO_LENGTH = 30;
 
+/**
+ * @brief Construct a new ORBmatcher::ORBmatcher object
+ * 
+ * @param nnratio 
+ * @param checkOri 
+ */
 ORBmatcher::ORBmatcher(float nnratio, bool checkOri): mfNNratio(nnratio), mbCheckOrientation(checkOri)
 {
 }
 
+/**
+ * @brief Search matches between Frame keypoints and projected MapPoints. 
+ * 
+ * @param F frame
+ * @param vpMapPoints MapPoints
+ * @param th threshold
+ * @return int number of matches Used to track the local map (Tracking)
+ */
 int ORBmatcher::SearchByProjection(Frame &F, const vector<MapPoint*> &vpMapPoints, const float th)
 {
     int nmatches=0;
@@ -51,10 +65,10 @@ int ORBmatcher::SearchByProjection(Frame &F, const vector<MapPoint*> &vpMapPoint
     for(size_t iMP=0; iMP<vpMapPoints.size(); iMP++)
     {
         MapPoint* pMP = vpMapPoints[iMP];
-        if(!pMP->mbTrackInView)
+        if(!pMP->mbTrackInView)//the MapPoint is in the view
             continue;
 
-        if(pMP->isBad())
+        if(pMP->isBad())//the MapPint is not bad
             continue;
 
         const int &nPredictedLevel = pMP->mnTrackScaleLevel;
@@ -128,15 +142,30 @@ int ORBmatcher::SearchByProjection(Frame &F, const vector<MapPoint*> &vpMapPoint
     return nmatches;
 }
 
+/**
+ * @brief set radius by viewing cos
+ * 
+ * @param viewCos view cos
+ * @return float radius
+ */
 float ORBmatcher::RadiusByViewingCos(const float &viewCos)
 {
-    if(viewCos>0.998)
+    if(viewCos>0.998)//near zero degree
         return 2.5;
     else
         return 4.0;
 }
 
-
+/**
+ * @brief check distance about epipolar line
+ * 
+ * @param kp1 keypoint1
+ * @param kp2 keypoint2
+ * @param F12 Fundamental matrix of keypoint1 to keypoint2
+ * @param pKF2 KeyFrame 
+ * @return true 
+ * @return false 
+ */
 bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoint &kp2,const cv::Mat &F12,const KeyFrame* pKF2)
 {
     // Epipolar line in second image l = x1'F12 = [a b c]
@@ -156,13 +185,23 @@ bool ORBmatcher::CheckDistEpipolarLine(const cv::KeyPoint &kp1,const cv::KeyPoin
     return dsqr<3.84*pKF2->mvLevelSigma2[kp2.octave];
 }
 
+/**
+ * @brief Search matches between MapPoints in a KeyFrame and ORB in a Frame.
+ *        Brute force constrained to ORB that belong to the same vocabulary node (at a certain level)
+ *        Used in Relocalisation and Loop Detection
+ * 
+ * @param pKF KeyFrame 
+ * @param F current Frame
+ * @param vpMapPointMatches MapPoints matching
+ * @return int number of matching points
+ */
 int ORBmatcher::SearchByBoW(KeyFrame* pKF,Frame &F, vector<MapPoint*> &vpMapPointMatches)
 {
-    const vector<MapPoint*> vpMapPointsKF = pKF->GetMapPointMatches();
+    const vector<MapPoint*> vpMapPointsKF = pKF->GetMapPointMatches();//get the match of the contained MapPoints from the KeyFrame
 
     vpMapPointMatches = vector<MapPoint*>(F.N,static_cast<MapPoint*>(NULL));
 
-    const DBoW2::FeatureVector &vFeatVecKF = pKF->mFeatVec;
+    const DBoW2::FeatureVector &vFeatVecKF = pKF->mFeatVec;//feature vector
 
     int nmatches=0;
 
@@ -198,9 +237,9 @@ int ORBmatcher::SearchByBoW(KeyFrame* pKF,Frame &F, vector<MapPoint*> &vpMapPoin
 
                 const cv::Mat &dKF= pKF->mDescriptors.row(realIdxKF);
 
-                int bestDist1=256;
+                int bestDist1=256;//first best distance
                 int bestIdxF =-1 ;
-                int bestDist2=256;
+                int bestDist2=256;//second best distance
 
                 for(size_t iF=0; iF<vIndicesF.size(); iF++)
                 {
@@ -287,6 +326,17 @@ int ORBmatcher::SearchByBoW(KeyFrame* pKF,Frame &F, vector<MapPoint*> &vpMapPoin
     return nmatches;
 }
 
+/**
+ * @brief Project MapPoints using a Similarity Transformation and search matches.
+ *        Used in loop detection (Loop Closing)
+ * 
+ * @param pKF KeyFrame
+ * @param Scw 
+ * @param vpPoints 
+ * @param vpMatched 
+ * @param th 
+ * @return int 
+ */
 int ORBmatcher::SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const vector<MapPoint*> &vpPoints, vector<MapPoint*> &vpMatched, int th)
 {
     // Get Calibration Parameters for later projection
@@ -297,9 +347,9 @@ int ORBmatcher::SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const vector<MapP
 
     // Decompose Scw
     cv::Mat sRcw = Scw.rowRange(0,3).colRange(0,3);
-    const float scw = sqrt(sRcw.row(0).dot(sRcw.row(0)));
-    cv::Mat Rcw = sRcw/scw;
-    cv::Mat tcw = Scw.rowRange(0,3).col(3)/scw;
+    const float scw = sqrt(sRcw.row(0).dot(sRcw.row(0)));//scale
+    cv::Mat Rcw = sRcw/scw;//de scale rotation matrix
+    cv::Mat tcw = Scw.rowRange(0,3).col(3)/scw;//de scale translation matrix
     cv::Mat Ow = -Rcw.t()*tcw;
 
     // Set of MapPoints already found in the KeyFrame
@@ -396,12 +446,21 @@ int ORBmatcher::SearchByProjection(KeyFrame* pKF, cv::Mat Scw, const vector<MapP
             vpMatched[bestIdx]=pMP;
             nmatches++;
         }
-
     }
 
     return nmatches;
 }
 
+/**
+ * @brief use for keypoint matching of monocular initialization
+ * 
+ * @param F1 frame1
+ * @param F2 frame2
+ * @param vbPrevMatched 
+ * @param vnMatches12 
+ * @param windowSize 
+ * @return int 
+ */
 int ORBmatcher::SearchForInitialization(Frame &F1, Frame &F2, vector<cv::Point2f> &vbPrevMatched, vector<int> &vnMatches12, int windowSize)
 {
     int nmatches=0;
@@ -519,6 +578,16 @@ int ORBmatcher::SearchForInitialization(Frame &F1, Frame &F2, vector<cv::Point2f
     return nmatches;
 }
 
+/**
+ * @brief   Search matches between MapPoints in a KeyFrame and ORB in a Frame.
+ *          Brute force constrained to ORB that belong to the same vocabulary node (at a certain level)
+ *          Used in Relocalisation and Loop Detection
+ * 
+ * @param pKF1 KeyFrame1
+ * @param pKF2 KeyFrame2
+ * @param vpMatches12 
+ * @return int 
+ */
 int ORBmatcher::SearchByBoW(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &vpMatches12)
 {
     const vector<cv::KeyPoint> &vKeysUn1 = pKF1->mvKeysUn;
@@ -654,11 +723,21 @@ int ORBmatcher::SearchByBoW(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint *> &
     return nmatches;
 }
 
+/**
+ * @brief Matching to triangulate new MapPoints. Check Epipolar Constraint.
+ * 
+ * @param pKF1 KeyFrame1
+ * @param pKF2 KeyFrame2
+ * @param F12 Fundamental matrix of keypoint1 to keypoint2
+ * @param vMatchedPairs 
+ * @param bOnlyStereo 
+ * @return int 
+ */
 int ORBmatcher::SearchForTriangulation(KeyFrame *pKF1, KeyFrame *pKF2, cv::Mat F12,
                                        vector<pair<size_t, size_t> > &vMatchedPairs, const bool bOnlyStereo)
 {    
-    const DBoW2::FeatureVector &vFeatVec1 = pKF1->mFeatVec;
-    const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;
+    const DBoW2::FeatureVector &vFeatVec1 = pKF1->mFeatVec;//Feature vector of KeyFrame1
+    const DBoW2::FeatureVector &vFeatVec2 = pKF2->mFeatVec;//Feature vector of KeyFrame2
 
     //Compute epipole in second image
     cv::Mat Cw = pKF1->GetCameraCenter();
@@ -822,6 +901,14 @@ int ORBmatcher::SearchForTriangulation(KeyFrame *pKF1, KeyFrame *pKF2, cv::Mat F
     return nmatches;
 }
 
+/**
+ * @brief Project MapPoints into KeyFrame and search for duplicated MapPoints.
+ * 
+ * @param pKF KeyFrame
+ * @param vpMapPoints MapPoints
+ * @param th threshold
+ * @return int 
+ */
 int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const float th)
 {
     cv::Mat Rcw = pKF->GetRotation();
@@ -952,7 +1039,7 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
         if(bestDist<=TH_LOW)
         {
             MapPoint* pMPinKF = pKF->GetMapPoint(bestIdx);
-            if(pMPinKF)
+            if(pMPinKF)//If this keypoint does not have a corresponding MapPoint
             {
                 if(!pMPinKF->isBad())
                 {
@@ -974,6 +1061,16 @@ int ORBmatcher::Fuse(KeyFrame *pKF, const vector<MapPoint *> &vpMapPoints, const
     return nFused;
 }
 
+/**
+ * @brief Project MapPoints into KeyFrame using a given Sim3 and search for duplicated MapPoints.
+ * 
+ * @param pKF KeyFrame
+ * @param Scw sim3
+ * @param vpPoints MapPoints
+ * @param th threshold
+ * @param vpReplacePoint replaced MapPoint
+ * @return int 
+ */
 int ORBmatcher::Fuse(KeyFrame *pKF, cv::Mat Scw, const vector<MapPoint *> &vpPoints, float th, vector<MapPoint *> &vpReplacePoint)
 {
     // Get Calibration Parameters for later projection
@@ -1099,6 +1196,19 @@ int ORBmatcher::Fuse(KeyFrame *pKF, cv::Mat Scw, const vector<MapPoint *> &vpPoi
     return nFused;
 }
 
+/**
+ * @brief Search matches between MapPoints seen in KF1 and KF2 transforming by a Sim3 [s12*R12|t12]
+ *        In the stereo and RGB-D case, s12=1
+ * 
+ * @param pKF1 KeyFrame1
+ * @param pKF2 KeyFrame2
+ * @param vpMatches12 matching MapPoints
+ * @param s12 scale from KeyFrame1 to KeyFrame2
+ * @param R12 rotation Matrix from KeyFrame1 to KeyFrame2
+ * @param t12 translation Matrix from KeyFrame1 to KeyFrame2
+ * @param th threshold
+ * @return int 
+ */
 int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &vpMatches12,
                              const float &s12, const cv::Mat &R12, const cv::Mat &t12, const float th)
 {
@@ -1148,7 +1258,8 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
     for(int i1=0; i1<N1; i1++)
     {
         MapPoint* pMP = vpMapPoints1[i1];
-
+        
+        //find unmatched MapPoints
         if(!pMP || vbAlreadyMatched1[i1])
             continue;
 
@@ -1224,7 +1335,7 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
         }
     }
 
-    // Transform from KF2 to KF2 and search
+    // Transform from KF2 to KF1 and search
     for(int i2=0; i2<N2; i2++)
     {
         MapPoint* pMP = vpMapPoints2[i2];
@@ -1325,6 +1436,16 @@ int ORBmatcher::SearchBySim3(KeyFrame *pKF1, KeyFrame *pKF2, vector<MapPoint*> &
     return nFound;
 }
 
+/**
+ * @brief Project MapPoints tracked in last frame into the current frame and search matches.
+ *        Used to track from previous frame (Tracking)
+ * 
+ * @param CurrentFrame current Frame
+ * @param LastFrame last Frame
+ * @param th threshold
+ * @param bMono flag to identity monocular
+ * @return int 
+ */
 int ORBmatcher::SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, const float th, const bool bMono)
 {
     int nmatches = 0;
@@ -1383,11 +1504,11 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, 
                 vector<size_t> vIndices2;
 
                 if(bForward)
-                    vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, nLastOctave);
+                    vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, nLastOctave);//scope is [nLastOctave,-1]
                 else if(bBackward)
-                    vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, 0, nLastOctave);
+                    vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, 0, nLastOctave);//scope is [0,nLastOctave]
                 else
-                    vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, nLastOctave-1, nLastOctave+1);
+                    vIndices2 = CurrentFrame.GetFeaturesInArea(u,v, radius, nLastOctave-1, nLastOctave+1);//scope is [nLastOctave-1,nLastOctave+1]
 
                 if(vIndices2.empty())
                     continue;
@@ -1469,6 +1590,17 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, const Frame &LastFrame, 
     return nmatches;
 }
 
+/**
+ * @brief Project MapPoints seen in KeyFrame into the Frame and search matches.
+ *        Used in relocalisation (Tracking)
+ * 
+ * @param CurrentFrame current frame
+ * @param pKF KeyFrame
+ * @param sAlreadyFound already found MapPoints
+ * @param th threshold
+ * @param ORBdist orb distance
+ * @return int 
+ */
 int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set<MapPoint*> &sAlreadyFound, const float th , const int ORBdist)
 {
     int nmatches = 0;
@@ -1487,7 +1619,7 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set
 
     for(size_t i=0, iend=vpMPs.size(); i<iend; i++)
     {
-        MapPoint* pMP = vpMPs[i];
+        MapPoint* pMP = vpMPs[i];//MapPoints in the KeyFrame
 
         if(pMP)
         {
@@ -1501,6 +1633,7 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set
                 const float yc = x3Dc.at<float>(1);
                 const float invzc = 1.0/x3Dc.at<float>(2);
 
+                //MapPoints project in the camera
                 const float u = CurrentFrame.fx*xc*invzc+CurrentFrame.cx;
                 const float v = CurrentFrame.fy*yc*invzc+CurrentFrame.cy;
 
@@ -1558,7 +1691,7 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set
                     nmatches++;
 
                     if(mbCheckOrientation)
-                    {
+                    {//TODO
                         float rot = pKF->mvKeysUn[i].angle-CurrentFrame.mvKeysUn[bestIdx2].angle;
                         if(rot<0.0)
                             rot+=360.0f;
@@ -1569,7 +1702,6 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set
                         rotHist[bin].push_back(bestIdx2);
                     }
                 }
-
             }
         }
     }
@@ -1582,6 +1714,7 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set
 
         ComputeThreeMaxima(rotHist,HISTO_LENGTH,ind1,ind2,ind3);
 
+        //earse mismatch
         for(int i=0; i<HISTO_LENGTH; i++)
         {
             if(i!=ind1 && i!=ind2 && i!=ind3)
@@ -1598,6 +1731,15 @@ int ORBmatcher::SearchByProjection(Frame &CurrentFrame, KeyFrame *pKF, const set
     return nmatches;
 }
 
+/**
+ * @brief 
+ * 
+ * @param histo histogram
+ * @param L histogram's length
+ * @param ind1 index of first max 
+ * @param ind2 index of second max
+ * @param ind3 index of third max
+ */
 void ORBmatcher::ComputeThreeMaxima(vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3)
 {
     int max1=0;
@@ -1641,9 +1783,11 @@ void ORBmatcher::ComputeThreeMaxima(vector<int>* histo, const int L, int &ind1, 
     }
 }
 
-
-// Bit set count operation from
-// http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+/**
+ * @brief computer descriptor distance
+ *  Bit set count operation from
+ *  http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel
+ */
 int ORBmatcher::DescriptorDistance(const cv::Mat &a, const cv::Mat &b)
 {
     const int *pa = a.ptr<int32_t>();
