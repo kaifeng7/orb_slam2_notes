@@ -71,10 +71,10 @@ public:
     std::mutex mMutexPointCreation;
 
 protected:
-    std::set<MapPoint*> mspMapPoints;
-    std::set<KeyFrame*> mspKeyFrames;
+    std::set<MapPoint*> mspMapPoints;// set of MapPoints
+    std::set<KeyFrame*> mspKeyFrames;// set of KeyFrames
 
-    std::vector<MapPoint*> mvpReferenceMapPoints;
+    std::vector<MapPoint*> mvpReferenceMapPoints;// the MapPoint's reference MapPoints
 
     long unsigned int mnMaxKFid;
 

@@ -36,7 +36,7 @@ double L1Scoring::score(const BowVector &v1, const BowVector &v2) const
     const WordValue& vi = v1_it->second;
     const WordValue& wi = v2_it->second;
     
-    if(v1_it->first == v2_it->first)
+    if(v1_it->first == v2_it->first)//将关键帧进行对齐
     {
       score += fabs(vi - wi) - fabs(vi) - fabs(wi);
       

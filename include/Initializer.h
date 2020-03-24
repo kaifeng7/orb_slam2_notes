@@ -79,20 +79,20 @@ private:
     vector<cv::KeyPoint> mvKeys2;
 
     // Current Matches from Reference to Current
-    vector<Match> mvMatches12;
-    vector<bool> mvbMatched1;
+    vector<Match> mvMatches12;//记录reference -> current 的匹配点对
+    vector<bool> mvbMatched1;//reference在current 是否有相应的匹配点
 
     // Calibration
     cv::Mat mK;
 
     // Standard Deviation and Variance
-    float mSigma, mSigma2;
+    float mSigma, mSigma2;//测量误差
 
     // Ransac max iterations
     int mMaxIterations;
 
     // Ransac sets
-    vector<vector<size_t> > mvSets;   
+    vector<vector<size_t> > mvSets;//二维容器，外层容器的大小为迭代次数，内层大小为每次迭代计算H或F矩阵的点
 
 };
 

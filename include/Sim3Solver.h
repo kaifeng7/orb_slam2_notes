@@ -29,7 +29,7 @@
 
 
 
-namespace ORB_SLAM2
+namespace ORB_SLAM2 
 {
 
 class Sim3Solver
@@ -67,37 +67,37 @@ protected:
     KeyFrame* mpKF1;
     KeyFrame* mpKF2;
 
-    std::vector<cv::Mat> mvX3Dc1;
-    std::vector<cv::Mat> mvX3Dc2;
-    std::vector<MapPoint*> mvpMapPoints1;
-    std::vector<MapPoint*> mvpMapPoints2;
+    std::vector<cv::Mat> mvX3Dc1;//camera下的坐标
+    std::vector<cv::Mat> mvX3Dc2;//camera下的坐标
+    std::vector<MapPoint*> mvpMapPoints1;//存放匹配的MapPoints1
+    std::vector<MapPoint*> mvpMapPoints2;//存放匹配的MapPoints2
     std::vector<MapPoint*> mvpMatches12;
     std::vector<size_t> mvnIndices1;
     std::vector<size_t> mvSigmaSquare1;
     std::vector<size_t> mvSigmaSquare2;
-    std::vector<size_t> mvnMaxError1;
-    std::vector<size_t> mvnMaxError2;
+    std::vector<size_t> mvnMaxError1;//重投影误差阈值1
+    std::vector<size_t> mvnMaxError2;//重投影误差阈值2
 
     int N;
-    int mN1;
+    int mN1;//pKF2特征点的个数
 
     // Current Estimation
-    cv::Mat mR12i;
-    cv::Mat mt12i;
-    float ms12i;
-    cv::Mat mT12i;
-    cv::Mat mT21i;
-    std::vector<bool> mvbInliersi;
-    int mnInliersi;
+    cv::Mat mR12i;//当前 旋转
+    cv::Mat mt12i;//当前 平移
+    float ms12i;//当前 Scale
+    cv::Mat mT12i;//当前 Sim3 变换
+    cv::Mat mT21i;//当前 Sim3 变换
+    std::vector<bool> mvbInliersi;//内点集合
+    int mnInliersi;//内点数
 
     // Current Ransac State
-    int mnIterations;
-    std::vector<bool> mvbBestInliers;
-    int mnBestInliers;
-    cv::Mat mBestT12;
-    cv::Mat mBestRotation;
-    cv::Mat mBestTranslation;
-    float mBestScale;
+    int mnIterations;//迭代次数
+    std::vector<bool> mvbBestInliers;//最好情况下的内点集合
+    int mnBestInliers;//最好情况下的内点数
+    cv::Mat mBestT12;//最好的Sim3
+    cv::Mat mBestRotation;//最好的旋转
+    cv::Mat mBestTranslation;//最好的平移
+    float mBestScale;//最好的尺度
 
     // Scale is fixed to 1 in the stereo/RGBD case
     bool mbFixScale;
@@ -110,21 +110,21 @@ protected:
     std::vector<cv::Mat> mvP2im2;
 
     // RANSAC probability
-    double mRansacProb;
+    double mRansacProb;//ransac 可接受概率
 
     // RANSAC min inliers
-    int mRansacMinInliers;
+    int mRansacMinInliers;//最小可接受的内点数
 
     // RANSAC max iterations
-    int mRansacMaxIts;
+    int mRansacMaxIts;//最大迭代次数
 
     // Threshold inlier/outlier. e = dist(Pi,T_ij*Pj)^2 < 5.991*mSigma2
     float mTh;
     float mSigma2;
 
     // Calibration
-    cv::Mat mK1;
-    cv::Mat mK2;
+    cv::Mat mK1;//内参1
+    cv::Mat mK2;//内参2
 
 };
 

@@ -25,8 +25,7 @@ namespace DBoW2 {
 
 const int FORB::L=32;
 
-void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors, 
-  FORB::TDescriptor &mean)
+void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors, FORB::TDescriptor &mean)
 {
   if(descriptors.empty())
   {
@@ -78,8 +77,7 @@ void FORB::meanValue(const std::vector<FORB::pDescriptor> &descriptors,
 
 // --------------------------------------------------------------------------
   
-int FORB::distance(const FORB::TDescriptor &a,
-  const FORB::TDescriptor &b)
+int FORB::distance(const FORB::TDescriptor &a, const FORB::TDescriptor &b)
 {
   // Bit set count operation from
   // http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel

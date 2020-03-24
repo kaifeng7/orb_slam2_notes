@@ -125,38 +125,42 @@ class PnPsolver {
   void mat_to_quat(const double R[3][3], double q[4]);
 
 
-  double uc, vc, fu, fv;
+  double uc, vc, fu, fv;//K
 
-  double * pws, * us, * alphas, * pcs;
-  int maximum_number_of_correspondences;
-  int number_of_correspondences;
+  double * pws;//3d points in World(x,y,z)
+  double * us;//2d points in image (u,v)
+  double * alphas;//3d points 用四个虚拟点表示时的系数(c1,c2,c3,c4)
+  double * pcs;//3d points in camera(x,y,z)
+  int maximum_number_of_correspondences;//用于确定当前迭代所需内存是否够用
+  int number_of_correspondences;//每次pnp求解时3D点和2D点匹配对数
 
-  double cws[4][3], ccs[4][3];
+  double cws[4][3];//c0,c1,c2,c3
+  double ccs[4][3];//c0,c1-c0,c2-c0,c3-c0
   double cws_determinant;
 
-  vector<MapPoint*> mvpMapPointMatches;
+  vector<MapPoint*> mvpMapPointMatches;//存放MapPoints的配对情况
 
   // 2D Points
-  vector<cv::Point2f> mvP2D;
-  vector<float> mvSigma2;
+  vector<cv::Point2f> mvP2D;//存放2D点
+  vector<float> mvSigma2;//金字塔
 
   // 3D Points
-  vector<cv::Point3f> mvP3Dw;
+  vector<cv::Point3f> mvP3Dw;//存放3D点
 
   // Index in Frame
-  vector<size_t> mvKeyPointIndices;
+  vector<size_t> mvKeyPointIndices;//记录好的关键点索引，
 
   // Current Estimation
-  double mRi[3][3];
-  double mti[3];
-  cv::Mat mTcwi;
-  vector<bool> mvbInliersi;
-  int mnInliersi;
+  double mRi[3][3];//R
+  double mti[3];//t
+  cv::Mat mTcwi;//Rt
+  vector<bool> mvbInliersi;//当前迭代的外点集合
+  int mnInliersi;//当前迭代的外点数
 
   // Current Ransac State
-  int mnIterations;
-  vector<bool> mvbBestInliers;
-  int mnBestInliers;
+  int mnIterations;//迭代次数总次数
+  vector<bool> mvbBestInliers;//最好的外点集
+  int mnBestInliers;//最好的外点数
   cv::Mat mBestTcw;
 
   // Refined
@@ -171,22 +175,22 @@ class PnPsolver {
   vector<size_t> mvAllIndices;
 
   // RANSAC probability
-  double mRansacProb;
+  double mRansacProb;//置信度
 
   // RANSAC min inliers
-  int mRansacMinInliers;
+  int mRansacMinInliers;//最少内点阈值
 
   // RANSAC max iterations
-  int mRansacMaxIts;
+  int mRansacMaxIts;//最大迭代次数
 
   // RANSAC expected inliers/total ratio
-  float mRansacEpsilon;
+  float mRansacEpsilon;//内点比例
 
   // RANSAC Threshold inlier/outlier. Max error e = dist(P1,T_12*P2)^2
   float mRansacTh;
 
   // RANSAC Minimun Set used at each iteration
-  int mRansacMinSet;
+  int mRansacMinSet;//每次需要的特征点数，默认4组3D-2D
 
   // Max square error associated with scale level. Max error = th*th*sigma(level)*sigma(level)
   vector<float> mvMaxError;

@@ -14,7 +14,8 @@
 #include <map>
 #include <vector>
 
-namespace DBoW2 {
+namespace DBoW2
+{
 
 /// Id of words
 typedef unsigned int WordId;
@@ -28,36 +29,34 @@ typedef unsigned int NodeId;
 /// L-norms for normalization
 enum LNorm
 {
-  L1,
-  L2
+	L1,
+	L2
 };
 
 /// Weighting type
 enum WeightingType
 {
-  TF_IDF,
-  TF,
-  IDF,
-  BINARY
+	TF_IDF,
+	TF,
+	IDF,
+	BINARY
 };
 
 /// Scoring type
 enum ScoringType
 {
-  L1_NORM,
-  L2_NORM,
-  CHI_SQUARE,
-  KL,
-  BHATTACHARYYA,
-  DOT_PRODUCT,
+	L1_NORM,
+	L2_NORM,
+	CHI_SQUARE,
+	KL,
+	BHATTACHARYYA,
+	DOT_PRODUCT,
 };
 
 /// Vector of words to represent images
-class BowVector: 
-	public std::map<WordId, WordValue>
+class BowVector : public std::map<WordId, WordValue>//key为wordID,value为tf*idf中的tf(单词w出现了ni次，一共出现了单词次数为n，tf = ni/n)
 {
 public:
-
 	/** 
 	 * Constructor
 	 */
@@ -67,7 +66,7 @@ public:
 	 * Destructor
 	 */
 	~BowVector(void);
-	
+
 	/**
 	 * Adds a value to a word value existing in the vector, or creates a new
 	 * word with the given value
@@ -75,7 +74,7 @@ public:
 	 * @param v value to create the word with, or to add to existing word
 	 */
 	void addWeight(WordId id, WordValue v);
-	
+
 	/**
 	 * Adds a word with a value to the vector only if this does not exist yet
 	 * @param id word id to look for
@@ -88,14 +87,14 @@ public:
 	 * @param norm_type norm used
 	 */
 	void normalize(LNorm norm_type);
-	
+
 	/**
 	 * Prints the content of the bow vector
 	 * @param out stream
 	 * @param v
 	 */
-	friend std::ostream& operator<<(std::ostream &out, const BowVector &v);
-	
+	friend std::ostream &operator<<(std::ostream &out, const BowVector &v);
+
 	/**
 	 * Saves the bow vector as a vector in a matlab file
 	 * @param filename

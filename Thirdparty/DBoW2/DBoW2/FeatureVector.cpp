@@ -46,8 +46,7 @@ void FeatureVector::addFeature(NodeId id, unsigned int i_feature)
 
 // ---------------------------------------------------------------------------
 
-std::ostream& operator<<(std::ostream &out, 
-  const FeatureVector &v)
+std::ostream& operator<<(std::ostream &out, const FeatureVector &v)
 {
   if(!v.empty())
   {

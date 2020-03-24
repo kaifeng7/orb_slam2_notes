@@ -1,3 +1,4 @@
+
 /**
  * File: FORB.h
  * Date: June 2012
@@ -35,8 +36,7 @@ public:
    * @param descriptors
    * @param mean mean descriptor
    */
-  static void meanValue(const std::vector<pDescriptor> &descriptors,
-    TDescriptor &mean);
+  static void meanValue(const std::vector<pDescriptor> &descriptors, TDescriptor &mean);
 
   /**
    * Calculates the distance between two descriptors

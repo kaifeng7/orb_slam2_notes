@@ -97,7 +97,7 @@ protected:
 
     void ComputeThreeMaxima(std::vector<int>* histo, const int L, int &ind1, int &ind2, int &ind3);
 
-    float mfNNratio;
+    float mfNNratio;//匹配特征点时，确定最好匹配与次好匹配差距的阈值，值越小，匹配越精准
     bool mbCheckOrientation;//flag to check orientation
 };
 

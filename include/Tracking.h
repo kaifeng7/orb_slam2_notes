@@ -98,8 +98,8 @@ public:
 
     // Initialization Variables (Monocular)
     std::vector<int> mvIniLastMatches;
-    std::vector<int> mvIniMatches;
-    std::vector<cv::Point2f> mvbPrevMatched;
+    std::vector<int> mvIniMatches;//之间匹配的特征点
+    std::vector<cv::Point2f> mvbPrevMatched;//前一帧特征点
     std::vector<cv::Point3f> mvIniP3D;
     Frame mInitialFrame;
 
@@ -142,11 +142,7 @@ protected:
     bool TrackReferenceKeyFrame();
     
     void UpdateLastFrame();
-    //运动模型进行跟踪
-    //1.根据上一帧的位姿和速度来计算当前帧的位姿。
-    //2.遍历上一帧中所有地图点，将上一帧的地图点向当前帧进行投影，投影过后在当前帧中找到一个描述子距离最相近的特征点作为投影点的匹配点。
-    //3.如果匹配点的数量满足要求，则对当前帧进行位姿优化。优化过后剔除外点。
-    //4.最后根据匹配点的数量判断跟踪是否成功。
+
     bool TrackWithMotionModel();
 
     //重定位
@@ -240,7 +236,7 @@ protected:
     KeyFrame* mpLastKeyFrame;//上一关键帧
     Frame mLastFrame;//上一帧
     unsigned int mnLastKeyFrameId;
-    unsigned int mnLastRelocFrameId;
+    unsigned int mnLastRelocFrameId;//上一次重定位的那一帧
 
     //Motion Model
     //上一帧与上上帧之间的位姿变换关系

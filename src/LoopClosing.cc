@@ -94,6 +94,12 @@ void LoopClosing::InsertKeyFrame(KeyFrame *pKF)
         mlpLoopKeyFrameQueue.push_back(pKF);
 }
 
+/**
+ * @brief 是否有等等被插入的关键帧
+ * 
+ * @return true 
+ * @return false 
+ */
 bool LoopClosing::CheckNewKeyFrames()
 {
     unique_lock<mutex> lock(mMutexLoopQueue);
@@ -111,7 +117,7 @@ bool LoopClosing::DetectLoop()
     }
 
     //If the map contains less than 10 KF or less than 10 KF have passed from last loop detection
-    if(mpCurrentKF->mnId<mLastLoopKFid+10)//当前关键帧ID<上次回环关键帧ID+10
+    if(mpCurrentKF->mnId<mLastLoopKFid+10)//当前关键帧ID<上次回环关键帧ID+10。不进行闭环检测
     {
         mpKeyFrameDB->add(mpCurrentKF);
         mpCurrentKF->SetErase();
@@ -121,6 +127,8 @@ bool LoopClosing::DetectLoop()
     // Compute reference BoW similarity score
     // This is the lowest score to a connected keyframe in the covisibility graph
     // We will impose loop candidates to have a higher similarity than this
+    
+    // 遍历所有共视关键帧，计算当前关键帧与每个共视关键的bow相似度得分，并得到最低得分minScore
     const vector<KeyFrame*> vpConnectedKeyFrames = mpCurrentKF->GetVectorCovisibleKeyFrames();//当前帧的共视关键帧
     const DBoW2::BowVector &CurrentBowVec = mpCurrentKF->mBowVec;//当前关键帧的词袋向量
     float minScore = 1;

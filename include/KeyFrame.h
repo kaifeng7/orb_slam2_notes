@@ -140,7 +140,7 @@ public:
 
     // Variables used by the tracking
     //用在跟踪部分
-
+    
     long unsigned int mnTrackReferenceForFrame; //跟踪参考帧
     long unsigned int mnFuseTargetForKF; //关键帧中使用的目标点
 

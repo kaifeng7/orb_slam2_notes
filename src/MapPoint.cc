@@ -432,7 +432,7 @@ int MapPoint::GetIndexInKeyFrame(KeyFrame *pKF)
 /**
  * @brief determine whether the KeyFrame observe this MapPoints
  * 
- * @param pKF KeyFrame
+ * @param pKF KeyFrame 
  * @return true 
  * @return false 
  */

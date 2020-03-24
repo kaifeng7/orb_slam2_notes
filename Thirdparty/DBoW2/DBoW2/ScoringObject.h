@@ -1,3 +1,4 @@
+
 /**
  * File: ScoringObject.h
  * Date: November 2011
@@ -19,8 +20,8 @@ class GeneralScoring
 {
 public:
   /**
-   * Computes the score between two vectors. Vectors must be sorted and 
-   * normalized if necessary
+   * Computes the score between two vectors. Vectors must be sorted and normalized if necessary
+   * 计算两个对象之间的相似度
    * @param v (in/out)
    * @param w (in/out)
    * @return score
@@ -28,8 +29,8 @@ public:
   virtual double score(const BowVector &v, const BowVector &w) const = 0;
 
   /**
-   * Returns whether a vector must be normalized before scoring according
-   * to the scoring scheme
+   * Returns whether a vector must be normalized before scoring according to the scoring scheme
+   * 返回值在[0,1]之间
    * @param norm norm to use
    * @return true iff must normalize
    */
