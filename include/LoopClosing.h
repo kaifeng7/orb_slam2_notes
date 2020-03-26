@@ -128,13 +128,13 @@ protected:
 
     // Loop detector variables
     KeyFrame* mpCurrentKF;//当前关键帧
-    KeyFrame* mpMatchedKF;//匹配关键帧
+    KeyFrame* mpMatchedKF;//找到和mpCurrentKF形成闭环关键帧
     std::vector<ConsistentGroup> mvConsistentGroups;//所有连续的关键帧组
     std::vector<KeyFrame*> mvpEnoughConsistentCandidates;//充分连接的候选关键帧组(一致性超过阈值的帧)
-    std::vector<KeyFrame*> mvpCurrentConnectedKFs;
-    std::vector<MapPoint*> mvpCurrentMatchedPoints;
-    std::vector<MapPoint*> mvpLoopMapPoints;
-    cv::Mat mScw;
+    std::vector<KeyFrame*> mvpCurrentConnectedKFs;//将mpMatchedKF闭环关键帧相连的关键帧全部取出来放入
+    std::vector<MapPoint*> mvpCurrentMatchedPoints;//将mvpLoopMapPoints投影到当前关键帧mpCurrentKF进行投影得到的匹配,判断是否冲突
+    std::vector<MapPoint*> mvpLoopMapPoints;//mvpCurrentConnectedKFs的MapPoint
+    cv::Mat mScw;//通过sim3 计算的当前帧到world的变换
     g2o::Sim3 mg2oScw;
 
     long unsigned int mLastLoopKFid;

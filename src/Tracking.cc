@@ -1487,10 +1487,12 @@ void Tracking::UpdateLocalKeyFrames()
 bool Tracking::Relocalization()
 {
     // Compute Bag of Words Vector
+    // 1.计算当前帧特征点的Bow映射
     mCurrentFrame.ComputeBoW();
 
     // Relocalization is performed when tracking is lost
     // Track Lost: Query KeyFrame Database for keyframe candidates for relocalisation
+    // 2.找到与当前帧相似的候选关键字
     vector<KeyFrame *> vpCandidateKFs = mpKeyFrameDB->DetectRelocalizationCandidates(&mCurrentFrame);
 
     if (vpCandidateKFs.empty()) //不存在候选关键帧
@@ -1520,6 +1522,7 @@ bool Tracking::Relocalization()
             vbDiscarded[i] = true;
         else
         {
+            //3.通过Bow进行匹配
             int nmatches = matcher.SearchByBoW(pKF, mCurrentFrame, vvpMapPointMatches[i]);
             if (nmatches < 15)
             {
@@ -1553,6 +1556,7 @@ bool Tracking::Relocalization()
             int nInliers;
             bool bNoMore;
 
+            //4.通过EPNP法估计姿态
             PnPsolver *pSolver = vpPnPsolvers[i];
             cv::Mat Tcw = pSolver->iterate(5, bNoMore, vbInliers, nInliers); //迭代5次，计算当前帧位资
 
@@ -1582,7 +1586,7 @@ bool Tracking::Relocalization()
                     else
                         mCurrentFrame.mvpMapPoints[j] = NULL;
                 }
-
+                //5,位姿优化
                 int nGood = Optimizer::PoseOptimization(&mCurrentFrame);
 
                 if (nGood < 10) //优化后内点数<10
@@ -1593,6 +1597,7 @@ bool Tracking::Relocalization()
                         mCurrentFrame.mvpMapPoints[io] = static_cast<MapPoint *>(NULL);
 
                 // If few inliers, search by projection in a coarse window and optimize again
+                // 6,如果内点较少，则通过投影的方式对之前未匹配的点进行匹配，再进行优化
                 if (nGood < 50)
                 {
                     int nadditional = matcher2.SearchByProjection(mCurrentFrame, vpCandidateKFs[i], sFound, 10, 100); //附加匹配点
