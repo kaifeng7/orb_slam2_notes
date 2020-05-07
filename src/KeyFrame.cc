@@ -174,10 +174,10 @@ cv::Mat KeyFrame::GetTranslation()
 }
 
 /**
- * @brief 增加连接
+ * @brief 在covisibility graph 中增加连接，更新essential graph
  * 
- * @param pKF 关键帧
- * @param weight 权重
+ * @param pKF 具有共视关系的关键帧
+ * @param weight 与pKF共视的MapPoint数量
  */
 void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
 {
@@ -195,13 +195,13 @@ void KeyFrame::AddConnection(KeyFrame *pKF, const int &weight)
 }
 
 /**
- * @brief 按weight排列KeyFrame
+ * @brief 按weight排列共视 KeyFrame
  * 
  */
 void KeyFrame::UpdateBestCovisibles()
 {
     unique_lock<mutex> lock(mMutexConnections);
-    vector<pair<int, KeyFrame *>> vPairs;
+    vector<pair<int, KeyFrame *> > vPairs;
     vPairs.reserve(mConnectedKeyFrameWeights.size()); //根据关键帧数量，设置容器大小
     for (map<KeyFrame *, int>::iterator mit = mConnectedKeyFrameWeights.begin(), mend = mConnectedKeyFrameWeights.end(); mit != mend; mit++)
         vPairs.push_back(make_pair(mit->second, mit->first)); //权重在前，关键帧在后
@@ -220,7 +220,7 @@ void KeyFrame::UpdateBestCovisibles()
 }
 
 /**
- * @brief 获取连接上的KeyFrame
+ * @brief 获取有共视关系的KeyFrame set
  * 
  * @return set<KeyFrame*> 
  */
@@ -234,7 +234,7 @@ set<KeyFrame *> KeyFrame::GetConnectedKeyFrames()
 }
 
 /**
- * @brief get ordered connectedKeyFrames
+ * @brief 获取covisbility 中与此关键帧相连的关键帧vector
  * 
  * @return vector<KeyFrame*> 
  */
@@ -245,7 +245,7 @@ vector<KeyFrame *> KeyFrame::GetVectorCovisibleKeyFrames()
 }
 
 /**
- * @brief 获取N帧排列好的KeyFrame
+ * @brief 获取covisibility中与此KeyFrame相连的N帧排列好的关键帧
  * 
  * @param N 
  * @return vector<KeyFrame*> 
@@ -344,7 +344,7 @@ void KeyFrame::ReplaceMapPointMatch(const size_t &idx, MapPoint *pMP)
 }
 
 /**
- * @brief 获取所有好的MapPoint
+ * @brief 获取所有好的MapPoint set
  * 
  * @return set<MapPoint*> 
  */
@@ -364,7 +364,7 @@ set<MapPoint *> KeyFrame::GetMapPoints()
 }
 
 /**
- * @brief 跟踪MapPoint
+ * @brief 此KeyFrame跟踪到MapPoint的数量
  * 
  * @param minObs 最少的观测次数
  * @return int 被跟踪的点数
@@ -397,7 +397,7 @@ int KeyFrame::TrackedMapPoints(const int &minObs)
 }
 
 /**
- * @brief 获取所有MapPoints
+ * @brief 获取所有和此KeyFrame有关的MapPoints
  * 
  * @return vector<MapPoint*> 
  */
@@ -432,7 +432,7 @@ void KeyFrame::UpdateConnections()
 {
     map<KeyFrame *, int> KFcounter; //<关键帧，观测到和当前帧相同MapPoint的个数>
 
-    vector<MapPoint *> vpMP;
+    vector<MapPoint *> vpMP;//该KeyFrame对应的MapPoints
 
     {
         unique_lock<mutex> lockMPs(mMutexFeatures);
@@ -471,7 +471,7 @@ void KeyFrame::UpdateConnections()
     KeyFrame *pKFmax = NULL;
     int th = 15;
 
-    vector<pair<int, KeyFrame *>> vPairs;//将权重写在前面，方便排序
+    vector<pair<int, KeyFrame *> > vPairs;//将权重写在前面，方便排序
     vPairs.reserve(KFcounter.size());
     for (map<KeyFrame *, int>::iterator mit = KFcounter.begin(), mend = KFcounter.end(); mit != mend; mit++)
     {
@@ -860,7 +860,7 @@ cv::Mat KeyFrame::UnprojectStereo(int i)
 }
 
 /**
- * @brief 计算场景中的中位深度
+ * @brief 计算MapPoints集合在此帧深度的中位数
  * 
  * @param q 
  * @return float 

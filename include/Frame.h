@@ -34,8 +34,9 @@
 
 namespace ORB_SLAM2
 {
-#define FRAME_GRID_ROWS 48
-#define FRAME_GRID_COLS 64
+//定义一帧中有多少个图像网格
+#define FRAME_GRID_ROWS 48 //网格的行数
+#define FRAME_GRID_COLS 64 //网格的列数
 
 class MapPoint;
 class KeyFrame;

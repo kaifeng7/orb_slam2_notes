@@ -873,7 +873,7 @@ void Tracking::UpdateLastFrame()
 
     // Create "visual odometry" MapPoints
     // We sort points according to their measured depth by the stereo/RGB-D sensor
-    vector<pair<float, int>> vDepthIdx;
+    vector<pair<float, int> > vDepthIdx;
     vDepthIdx.reserve(mLastFrame.N);
     for (int i = 0; i < mLastFrame.N; i++)
     {
@@ -1191,7 +1191,7 @@ void Tracking::CreateNewKeyFrame()
         // We sort points by the measured depth by the stereo/RGBD sensor.
         // We create all those MapPoints whose depth < mThDepth.
         // If there are less than 100 close points we create the 100 closest.
-        vector<pair<float, int>> vDepthIdx;
+        vector<pair<float, int> > vDepthIdx;
         vDepthIdx.reserve(mCurrentFrame.N);
         for (int i = 0; i < mCurrentFrame.N; i++)
         {
@@ -1507,7 +1507,7 @@ bool Tracking::Relocalization()
     vector<PnPsolver *> vpPnPsolvers; //PnP求解器
     vpPnPsolvers.resize(nKFs);
 
-    vector<vector<MapPoint *>> vvpMapPointMatches;
+    vector<vector<MapPoint *> > vvpMapPointMatches;
     vvpMapPointMatches.resize(nKFs);
 
     vector<bool> vbDiscarded;

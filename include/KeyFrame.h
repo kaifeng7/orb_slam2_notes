@@ -69,6 +69,8 @@ public:
     int GetWeight(KeyFrame* pKF);
 
     // Spanning tree functions
+    // Spanning tree的节点为关键帧，共视程度最高的那个关键帧设置为节点在Spanning Tree中的父节点
+
     void AddChild(KeyFrame* pKF);
     void EraseChild(KeyFrame* pKF);
     void ChangeParent(KeyFrame* pKF);
@@ -140,30 +142,26 @@ public:
 
     // Variables used by the tracking
     //用在跟踪部分
-    
-    long unsigned int mnTrackReferenceForFrame; //跟踪参考帧
-    long unsigned int mnFuseTargetForKF; //关键帧中使用的目标点
+    long unsigned int mnTrackReferenceForFrame; //标记次KeyFrame在tracking中参考哪个KeyFrame，用于防止重复
+    long unsigned int mnFuseTargetForKF; //标记此KeyFrame将要和哪个KeyFrame fuse,用于防止重复
 
     // Variables used by the local mapping
     //用在局部地图部分
-
-    long unsigned int mnBALocalForKF; //关键帧的局部BA
-    long unsigned int mnBAFixedForKF; //关键帧的固定点的BA
+    long unsigned int mnBALocalForKF; //用于标记关键帧的局部BA
+    long unsigned int mnBAFixedForKF; //用于标记关键帧的固定点的BA
 
     // Variables used by the keyframe database
     //用在关键帧数据集部分
-
-    long unsigned int mnLoopQuery; //number of loop query
-    int mnLoopWords; //回环字符标志
-    float mLoopScore; //score of loop 
-    long unsigned int mnRelocQuery; //number of relocalization query
-    int mnRelocWords; //重定位的字符标志
-    float mRelocScore; //score of relocalization
+    long unsigned int mnLoopQuery; //哪个KeyFrame查询过和次KeyFrame有相同的单词，且在Essential graph连接
+    int mnLoopWords; //mnLoopQuery指向的KeyFrame和此KeyFrame有多少个共同单词
+    float mLoopScore; //mnLoopQuery指向的KeyFrame与此KeyFrame之间相似度得分
+    long unsigned int mnRelocQuery; //哪个KeyFrame查询过和次KeyFrame有相同的单词
+    int mnRelocWords; //mnRelocQuery指向的KeyFrame和此KeyFrame有多少个共同单词
+    float mRelocScore; //mnRelocQuery指向的KeyFrame与此KeyFrame之间相似度得分
 
 
     // Variables used by loop closing
     //用于闭环检测部分
-
     cv::Mat mTcwGBA; //transformation of global BA
     cv::Mat mTcwBefGBA; //transformation of before global BA
     long unsigned int mnBAGlobalForKF; //关键帧用于全局BA
@@ -228,9 +226,10 @@ protected:
 
     // Grid over the image to speed up feature matching
     std::vector< std::vector <std::vector<size_t> > > mGrid; //二位容器的栅格
-    std::map<KeyFrame*,int> mConnectedKeyFrameWeights; //连接关键帧与权重的map
-    std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames; //按顺序连接的关键帧组
-    std::vector<int> mvOrderedWeights; //顺序权重
+    std::map<KeyFrame*,int> mConnectedKeyFrameWeights; //与此关键帧具有连接关系的关键帧及其MapPoint共视数量
+    std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames; //与此关键帧具有连接关系的关键帧，递减排列
+    std::vector<int> mvOrderedWeights; //mvpOrderedConnectedKeyFrames中共视的MapPoint数量，也就是共视图covisibility graph权重，递减排列
+
 
     // Spanning Tree and Loop Edges
     bool mbFirstConnection; //the flag of first connection

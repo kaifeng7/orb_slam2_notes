@@ -69,16 +69,16 @@ Frame::Frame(const Frame &frame)
 /**
  * @brief Construct a new Frame for Stereo cameras:: Frame object
  * 
- * @param imLeft left of image
- * @param imRight right of image
- * @param timeStamp time stamp
- * @param extractorLeft 
- * @param extractorRight 
- * @param voc 
- * @param K 
- * @param distCoef 
- * @param bf 
- * @param thDepth 
+ * @param imLeft 左目图像
+ * @param imRight 右目图像
+ * @param timeStamp 时间戳
+ * @param extractorLeft 左目图像特征点提取器
+ * @param extractorRight 右目图像特征点提取器
+ * @param voc ORB字典
+ * @param K 相机内参矩阵
+ * @param distCoef 相机去畸变参数
+ * @param bf 相机基线长度和焦距的乘积
+ * @param thDepth 远点和近点的深度区分阈值
  */
 Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor *extractorLeft, ORBextractor *extractorRight, ORBVocabulary *voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     : mpORBvocabulary(voc), mpORBextractorLeft(extractorLeft), mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()), mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
@@ -141,15 +141,15 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
 /**
  * @brief Construct a new Frame for RGB-D cameras:: Frame object
  * 
- * @param imGray 
- * @param imDepth 
- * @param timeStamp 
- * @param extractor 
- * @param voc 
- * @param K 
- * @param distCoef 
- * @param bf 
- * @param thDepth 
+ * @param imGray 对RGB图像灰度化之后得到的灰度图像
+ * @param imDepth 深度图像
+ * @param timeStamp 时间戳
+ * @param extractor 特征点提取器
+ * @param voc ORB特征点词典
+ * @param K 相机内参矩阵
+ * @param distCoef 相机去畸变参数
+ * @param bf 相机基线长度和焦距的乘积
+ * @param thDepth 远点和近点的深度区分阈值
  */
 Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeStamp, ORBextractor *extractor, ORBVocabulary *voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     : mpORBvocabulary(voc), mpORBextractorLeft(extractor), mpORBextractorRight(static_cast<ORBextractor *>(NULL)),
@@ -208,14 +208,14 @@ Frame::Frame(const cv::Mat &imGray, const cv::Mat &imDepth, const double &timeSt
 /**
  * @brief Construct a new Frame for Monocular cameras:: Frame object
  * 
- * @param imGray 
- * @param timeStamp 
- * @param extractor 
- * @param voc 
- * @param K 
- * @param distCoef 
- * @param bf 
- * @param thDepth 
+ * @param imGray 对RGB图像灰度化之后得到的灰度图像
+ * @param timeStamp 时间戳
+ * @param extractor 特征点提取器
+ * @param voc ORB特征点词典
+ * @param K 内参
+ * @param distCoef 去畸变系数 
+ * @param bf 基线和焦距的乘积
+ * @param thDepth 远点和近点的深度区域阈值
  */
 Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor *extractor, ORBVocabulary *voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
     : mpORBvocabulary(voc), mpORBextractorLeft(extractor), mpORBextractorRight(static_cast<ORBextractor *>(NULL)),
@@ -298,7 +298,7 @@ void Frame::AssignFeaturesToGrid()
  * @brief Extract ORB on the image,
  * KeyPoint save in mvKeys and descriptor save in mDescriptors
  * @param flag 0 for left or 1 for right
- * @param im image
+ * @param im 等待提取特征点的图像
  */
 void Frame::ExtractORB(int flag, const cv::Mat &im)
 {
@@ -309,9 +309,9 @@ void Frame::ExtractORB(int flag, const cv::Mat &im)
 }
 
 /**
- * @brief Set the camera pose.
+ * @brief 用Tcw更新mTcw以及类中存储的一系列位姿
  * 
- * @param Tcw 
+ * @param Tcw camera->world
  */
 void Frame::SetPose(cv::Mat Tcw)
 {
@@ -335,9 +335,9 @@ void Frame::UpdatePoseMatrices()
  * @brief Check if a MapPoint is in the frustum of the camera
  *        and fill variables of the MapPoint to be used by the tracking
  * @param pMP 
- * @param viewingCosLimit 
- * @return true 
- * @return false 
+ * @param viewingCosLimit 视角和平均视角的方向阈值
+ * @return true 在相机视野中
+ * @return false 不在相机视野中
  */
 bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
 {
@@ -399,14 +399,14 @@ bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
 }
 
 /**
- * @brief get features in area
+ * @brief 获取指定区域（x，y，r）内的特征点
  * 
- * @param x the x of point
- * @param y the y of point
- * @param r radius
- * @param minLevel 
- * @param maxLevel 
- * @return vector<size_t> conditional KeyPoints
+ * @param x 区域中心x的坐标
+ * @param y 区域中心y的坐标
+ * @param r 区域的半径r
+ * @param minLevel 搜索的图像金字塔层数的下限，即最小尺度
+ * @param maxLevel 搜索的图像金字塔层数的上限，即最大尺度
+ * @return 包含有这个区域内所有特征点的向量，该向量中存储的是特征点的序号
  */
 vector<size_t> Frame::GetFeaturesInArea(const float &x, const float &y, const float &r, const int minLevel, const int maxLevel) const
 {
@@ -466,11 +466,11 @@ vector<size_t> Frame::GetFeaturesInArea(const float &x, const float &y, const fl
 /**
  * @brief Compute the cell of a keypoint
  * 
- * @param kp KeyPoint
- * @param posX the x of keypoint pose
- * @param posY the y of keypoint pose
- * @return true inside the grid
- * @return false outside the grid
+ * @param kp 特征点的坐标
+ * @param posX 所处的图像网格的横坐标
+ * @param posY 所处的图像网格的纵坐标
+ * @return true 特征点在网格中
+ * @return false 特征点不在网格中
  */
 bool Frame::PosInGrid(const cv::KeyPoint &kp, int &posX, int &posY)
 {
@@ -486,7 +486,7 @@ bool Frame::PosInGrid(const cv::KeyPoint &kp, int &posX, int &posY)
 
 /**
  * @brief Compute Bag of Words representation.
- * 
+ * @details 计算词包mBowVec和mFeatVec，其中mFeatVec记录了属于第i个node的ni个描述子
  */
 void Frame::ComputeBoW()
 {
@@ -574,7 +574,10 @@ void Frame::ComputeImageBounds(const cv::Mat &imLeft)
 /**
  * @brief Search a match for each keypoint in the left image to a keypoint in the right image.
  *        If there is a match, depth is computed and the right coordinate associated to the left keypoint is stored.
- * 
+ * @details 为左图的每一个特征点在右图中找到匹配点
+ *          根据基线上描述子距离找到匹配，再进行SAD精确定位
+ *          对所有SAD的值进行排序，剔除SAD值较大的匹配对，利用抛物线拟合得到亚像素精度的匹配
+ *          匹配成功后更新mvuRight(ur),mvDepth(z)
  */
 void Frame::ComputeStereoMatches()
 {
@@ -587,7 +590,7 @@ void Frame::ComputeStereoMatches()
     const int nRows = mpORBextractorLeft->mvImagePyramid[0].rows;
 
     //Assign keypoints to row table
-    vector<vector<size_t>> vRowIndices(nRows, vector<size_t>());
+    vector<vector<size_t> > vRowIndices(nRows, vector<size_t>());
 
     for (int i = 0; i < nRows; i++)
         vRowIndices[i].reserve(200);
@@ -612,7 +615,7 @@ void Frame::ComputeStereoMatches()
     const float maxD = mbf / minZ;
 
     // For each left keypoint search a match in the right image
-    vector<pair<int, int>> vDistIdx;
+    vector<pair<int, int> > vDistIdx;
     vDistIdx.reserve(N);
 
     for (int iL = 0; iL < N; iL++)
@@ -755,6 +758,7 @@ void Frame::ComputeStereoMatches()
 
 /**
  * @brief Associate a "right" coordinate to a keypoint if there is valid depth in the depthmap.
+ * @details 将地图点和其深度对应起来， 可以直接从深度图像上获得特征点的深度
  * 
  * @param imDepth 
  */
@@ -784,8 +788,8 @@ void Frame::ComputeStereoFromRGBD(const cv::Mat &imDepth)
 /**
  * @brief Backprojects a keypoint (if stereo/depth info available) into 3D world coordinates.
  * 
- * @param i index
- * @return cv::Mat in world coordinate
+ * @param i 特征点的id
+ * @return 反投影点的世界坐标
  */
 cv::Mat Frame::UnprojectStereo(const int &i)
 {
