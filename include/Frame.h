@@ -101,7 +101,7 @@ public:
 
 public:
     // Vocabulary used for relocalization.
-    ORBVocabulary* mpORBvocabulary;
+    ORBVocabulary* mpORBvocabulary;//用于重定位的ORB特征字典
 
     // Feature extractor. The right is used only in the stereo case.
     ORBextractor* mpORBextractorLeft, *mpORBextractorRight;
@@ -117,75 +117,82 @@ public:
     static float cy;
     static float invfx;
     static float invfy;
-    cv::Mat mDistCoef;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     
+    cv::Mat mDistCoef;//去畸变参数                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
 
     // Stereo baseline multiplied by fx.
-    float mbf;
+    float mbf;//baseline*fx
 
     // Stereo baseline in meters.
-    float mb;
+    float mb;//baseline
 
     // Threshold close/far points. Close points are inserted from 1 view.
     // Far points are inserted as in the monocular case from 2 views.
-    float mThDepth;
+    float mThDepth;//远点和近点的深度阈值
 
     // Number of KeyPoints.
-    int N;
+    int N;//keyPoints数量
 
     // Vector of keypoints (original for visualization) and undistorted (actually used by the system).
     // In the stereo case, mvKeysUn is redundant as images must be rectified.
     // In the RGB-D case, RGB images can be distorted.
-    std::vector<cv::KeyPoint> mvKeys, mvKeysRight;
-    std::vector<cv::KeyPoint> mvKeysUn;
+    // 校正的操作在帧的构造函数中进行
+    std::vector<cv::KeyPoint> mvKeys;//原始左图像提取出的特征点(未校正)
+    std::vector<cv::KeyPoint>mvKeysRight;//原始右图像提取出的特征点(未校正)
+    std::vector<cv::KeyPoint> mvKeysUn;//校正mvKeys后的特征点
 
     // Corresponding stereo coordinate and depth for each keypoint.
     // "Monocular" keypoints have a negative value.
-    std::vector<float> mvuRight;//the uv of right picture
+    std::vector<float> mvuRight;//左目像素点在右目中的对应点的横坐标(因为纵坐标是一致的)
     std::vector<float> mvDepth;//the depth of feature
 
     // Bag of Words Vector structures.
-    DBoW2::BowVector mBowVec;
-    DBoW2::FeatureVector mFeatVec;
+    DBoW2::BowVector mBowVec;//和词袋模型有关的向量
+    DBoW2::FeatureVector mFeatVec;//和词袋模型中特征有关的向量
 
     // ORB descriptor, each row associated to a keypoint.
-    cv::Mat mDescriptors, mDescriptorsRight;
+    cv::Mat mDescriptors;//左目相机中特征点对应的描述子
+    cv::Mat mDescriptorsRight;//右目相机中特征点对应的描述子
 
     // MapPoints associated to keypoints, NULL pointer if no association.
-    std::vector<MapPoint*> mvpMapPoints;
+    std::vector<MapPoint*> mvpMapPoints;//每个特征点对应的MapPoint，如果特征点没有对应的地图点，那么存储一个空指针
 
     // Flag to identify outlier associations.
-    std::vector<bool> mvbOutlier;
+    std::vector<bool> mvbOutlier;//观测不到的3d点，在Optimizer::PoseOptimization使用
 
     // Keypoints are assigned to cells in a grid to reduce matching complexity when projecting MapPoints.
-    static float mfGridElementWidthInv;
-    static float mfGridElementHeightInv;
-    std::vector<std::size_t> mGrid[FRAME_GRID_COLS][FRAME_GRID_ROWS];
+    static float mfGridElementWidthInv;//可以确定在哪个grid里
+    static float mfGridElementHeightInv;//可以确定在哪个grid里
+    std::vector<std::size_t> mGrid[FRAME_GRID_COLS][FRAME_GRID_ROWS];//每个图像网格内特征点的Id
 
     cv::Mat mTcw;// Camera pose.
 
 
     static long unsigned int nNextId;//Next Frame id.
+                                     //在整个系统开始执行的时候被初始化，在全局区被初始化
     long unsigned int mnId;//Current Frame id
 
     // Reference Keyframe.
-    KeyFrame* mpReferenceKF;
+    KeyFrame* mpReferenceKF;//指向参考关键帧
 
     // Scale pyramid info.
-    int mnScaleLevels;
-    float mfScaleFactor;
-    float mfLogScaleFactor;
-    vector<float> mvScaleFactors;
-    vector<float> mvInvScaleFactors;
+    int mnScaleLevels; //图像金字塔的层数
+    float mfScaleFactor; //图像金字塔的尺度因子
+    float mfLogScaleFactor;//log(scaleFactor)
+    vector<float> mvScaleFactors;//每一层的缩放因子
+    vector<float> mvInvScaleFactors;// 1/ScaleFactor
     vector<float> mvLevelSigma2;
     vector<float> mvInvLevelSigma2;
 
     // Undistorted Image Bounds (computed once).
+    // grid的边界
     static float mnMinX;
     static float mnMaxX;
     static float mnMinY;
     static float mnMaxY;
 
-    static bool mbInitialComputations;//initial computation's flag
+    //由于第一帧以及slam系统进行重新校正后的第一帧会有一些特殊的初始化处理操作
+    static bool mbInitialComputations;//标记静态成员变量是否需要被赋值
+    
 
 
 private:

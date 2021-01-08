@@ -57,11 +57,18 @@ void Optimizer::GlobalBundleAdjustemnt(Map* pMap, int nIterations, bool* pbStopF
 
 /**
  * @brief 通过优化vpKF的pose、vpMP等优化变量，使得vpMP通过vpKF里的位姿投影到vpKF的二维坐标的重投影误差最小
- * 
+ * 1.Vertex: g2o::VertexSE3Expmap() CurrentKF的Tcw
+ *           g2o::VertexSBAPointXYZ() MapPoint的mWorldPos
+ * 2.edge:   g2o::EdgeSE3ProjectXYZ(),BaseBinaryEdge
+ *           ----Vertex:待优化CurrentKF的Tcw
+ *           ----Vertex:待优化MapPoint的mWorldPos
+ *           ----Measurement:MapPoint在CurrentKF中的二维坐标(u,v)
+ *           ----InfoMatrix:invSigma2 与特征点所在尺度有关
+ *  
  * @param vpKFs 存放所有KeyFrames的容器
  * @param vpMP 存放所有MapPoints的容器
  * @param nIterations 迭代的次数
- * @param pbStopFlag 是否停止的标志位
+ * @param pbStopFlag 是否停止优化的标志位
  * @param nLoopKF 在id为nLoopKF处进行BA
  * @param bRobust 是否使用核函数
  */
@@ -69,8 +76,9 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
                                  int nIterations, bool* pbStopFlag, const unsigned long nLoopKF, const bool bRobust)
 {
     vector<bool> vbNotIncludedMP;
-    vbNotIncludedMP.resize(vpMP.size());//表示不在MapPoint内
+    vbNotIncludedMP.resize(vpMP.size());//不参与优化的点
 
+    //step1: 初始化g2o优化器
     g2o::SparseOptimizer optimizer;
     g2o::BlockSolver_6_3::LinearSolverType * linearSolver;//误差变量为6维，误差项为3维
 
@@ -78,19 +86,19 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
 
     g2o::BlockSolver_6_3 * solver_ptr = new g2o::BlockSolver_6_3(linearSolver);
 
-    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
+    g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);//LM算法进行优化
     optimizer.setAlgorithm(solver);
 
     if(pbStopFlag)//是否强制停止
         optimizer.setForceStopFlag(pbStopFlag);
 
-    long unsigned int maxKFid = 0;
+    long unsigned int maxKFid = 0;//记录添加到优化器的顶点的最大关键帧ID
 
-    // Set KeyFrame vertices
-    for(size_t i=0; i<vpKFs.size(); i++)//遍历提供的所有关键帧，添加keyframe pose 作为顶点误差变量
+    // step2:Set KeyFrame vertices
+    for(size_t i=0; i<vpKFs.size(); i++)//遍历提供的所有关键帧，添加keyframe pose作为顶点误差变量
     {
         KeyFrame* pKF = vpKFs[i];
-        if(pKF->isBad())
+        if(pKF->isBad())//去除无效的
             continue;
         g2o::VertexSE3Expmap * vSE3 = new g2o::VertexSE3Expmap();//pose SE3
         vSE3->setEstimate(Converter::toSE3Quat(pKF->GetPose()));//设置pose顶点误差变量的初值
@@ -101,10 +109,11 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             maxKFid=pKF->mnId;
     }
 
-    const float thHuber2D = sqrt(5.99);//核函数
-    const float thHuber3D = sqrt(7.815);
+    //卡方分布 95%以上可信度时的阈值
+    const float thHuber2D = sqrt(5.99);//2自由度
+    const float thHuber3D = sqrt(7.815);//3自由度
 
-    // Set MapPoint vertices
+    // step3:Set MapPoint vertices
     //一边添加MapPoint的顶点，一边添加边
     for(size_t i=0; i<vpMP.size(); i++)//遍历提供的所有MapPoint，添加MapPoint position 作为顶点误差变量
     {
@@ -112,7 +121,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         if(pMP->isBad())
             continue;
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();//point xyz
-        vPoint->setEstimate(Converter::toVector3d(pMP->GetWorldPos()));//顶点的初值
+        vPoint->setEstimate(Converter::toVector3d(pMP->GetWorldPos()));//顶点的初值,将cv::Mat格式数据转换为Eigen::Vector3d类型
         const int id = pMP->mnId+maxKFid+1;//顶点的id，与pose的区别开
         vPoint->setId(id);
         vPoint->setMarginalized(true);//进行schur消元，是否利用稀疏化加速
@@ -121,7 +130,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
        const map<KeyFrame*,size_t> observations = pMP->GetObservations();
 
         int nEdges = 0;
-        //SET EDGES
+        //step4: Set Edges 在遍历地图点时，将该点与可观测到他的KF进行连接
         for(map<KeyFrame*,size_t>::const_iterator mit=observations.begin(); mit!=observations.end(); mit++)//遍历此MapPoint能被看到的所有KeyFrame，向优化器添加误差边
         {
 
@@ -143,13 +152,20 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
                 e->setVertex(0, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(id)));//添加和这条边相连接的MapPoint顶点
                 e->setVertex(1, dynamic_cast<g2o::OptimizableGraph::Vertex*>(optimizer.vertex(pKF->mnId)));//添加和这条边相连接的KeyFrame顶点
                 e->setMeasurement(obs);//添加观测值
-                const float &invSigma2 = pKF->mvInvLevelSigma2[kpUn.octave];//根据MapPoint所在的高斯金字塔尺度设置信息矩阵
+
+                //根据MapPoint所在的高斯金字塔尺度设置信息矩阵
+                //信息矩阵表明了这个约束的观测在各个维度(u,v)上的可信度，系统中两个坐标的可信度是相同的
+                //可信度与特征点在图像金字塔中的层数有关，图层越高，可信度越差
+                //使用平方是为了避免信息矩阵中元素为负
+                const float &invSigma2 = pKF->mvInvLevelSigma2[kpUn.octave];
                 e->setInformation(Eigen::Matrix2d::Identity()*invSigma2);
 
                 if(bRobust)//如果使用核函数
                 {
                     g2o::RobustKernelHuber* rk = new g2o::RobustKernelHuber;
                     e->setRobustKernel(rk);
+                    //重投影误差为2自由度，因此使用2自由度的卡方分布值，如果误差相差大于1个像素，认为该点不可靠
+                    //核函数为了避免误差点出现数值过大的增长
                     rk->setDelta(thHuber2D);
                 }
 

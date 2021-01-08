@@ -275,7 +275,7 @@ Frame::Frame(const cv::Mat &imGray, const double &timeStamp, ORBextractor *extra
 
 /**
  * @brief Assign keypoints to the grid for speed up feature matching
- * 
+ * @details 将提取到的特征点分配到图像网格中，由构造函数调用
  */
 void Frame::AssignFeaturesToGrid()
 {
